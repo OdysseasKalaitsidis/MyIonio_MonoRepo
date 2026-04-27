@@ -8,7 +8,7 @@ Write-Host "Starting deployment to $VM_USER@$VM_IP..." -ForegroundColor Cyan
 
 # 1. Create a tarball of the project
 Write-Host "Creating project bundle..." -ForegroundColor Yellow
-$exclude = @("--exclude=node_modules", "--exclude=.git", "--exclude=bin", "--exclude=obj", "--exclude=Frontend/dist", "--exclude=Backend/publish")
+$exclude = @("--exclude=node_modules", "--exclude=.git", "--exclude=bin", "--exclude=obj", "--exclude=Frontend/dist", "--exclude=Backend/publish", "--exclude=MyIonio-Backend", "--exclude=MyIonio-AI", "--exclude=MyIonio-Frontend")
 tar czf myionio.tar.gz @exclude .
 
 # 2. Upload to VM

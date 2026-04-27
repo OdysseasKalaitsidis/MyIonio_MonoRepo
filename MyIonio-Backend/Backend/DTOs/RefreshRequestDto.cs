@@ -1,9 +1,0 @@
-﻿namespace IonioPortal.DTOs
-{
-    public class RefreshRequestDto
-    {
-        public string RefreshToken { get; set; }
-
-    }
-}
-   
