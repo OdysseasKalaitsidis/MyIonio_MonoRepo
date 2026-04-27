@@ -75,9 +75,7 @@ __pycache__/
 *.so
 .Python
 env/
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -98,8 +96,11 @@ ENV/
 htmlcov/
 .tox/
 .nox/
+# Exception: Frontend source lib is NOT a Python lib folder — must be tracked
+!Frontend/src/lib/
+!Frontend/src/lib/**
 
-# Node.js / Frontend (MyIonio-Frontend)
+# Node.js / Frontend
 node_modules/
 npm-debug.log*
 yarn-debug.log*
