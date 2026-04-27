@@ -11,7 +11,6 @@ namespace MyIonio.Controllers
     [Route("api/")]
     public class GetScheduleController : ControllerBase
     {
-
         private readonly AppDbContext _context;
 
         public GetScheduleController(AppDbContext context)
@@ -19,39 +18,48 @@ namespace MyIonio.Controllers
             _context = context;
         }
 
-
-
         [HttpGet("schedule")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSchedule([FromQuery] ScheduleRequestDto dto)
         {
-             if (string.IsNullOrEmpty(dto.Department) || string.IsNullOrEmpty(dto.Semester))
-    {
+            if (string.IsNullOrEmpty(dto.Department) || string.IsNullOrEmpty(dto.Semester))
+            {
                 return BadRequest("Department and semester are required");
-    }
-
-          
-        
+            }
 
             var semesterMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
-        { "A", "Á" }, { "B", "Â" }, { "C", "Ã" }, { "D", "Ä" },
-        { "E", "Å" }, { "F", "ÓÔ" }, { "G", "Æ" }, { "H", "Ç" },
-        { "ÓÔ", "ÓÔ" }
-    };
+            {
+                { "A", "Î‘" }, { "B", "Î’" }, { "C", "Î“" }, { "D", "Î”" },
+                { "E", "Î•" }, { "F", "Î£Î¤" }, { "G", "Î–" }, { "H", "Î—" },
+                { "Î£Î¤", "Î£Î¤" }
+            };
 
             string targetSemester = semesterMap.ContainsKey(dto.Semester)
-        ? semesterMap[dto.Semester]
-        : dto.Semester;
+                ? semesterMap[dto.Semester]
+                : dto.Semester;
 
-            // Normalize: removing single quotes AND Greek tonos
-            var normalizedTargetSemester = targetSemester?.Trim().Replace("'", "").Replace("\u0384", "").Replace("´", "");
+            // Normalize function for Greek numeral signs and accents
+            string NormalizeSemester(string val)
+            {
+                if (string.IsNullOrEmpty(val)) return "";
+                return val.Trim()
+                    .Replace("'", "")
+                    .Replace("\"", "")
+                    .Replace("\u0384", "") // GREEK TONOS
+                    .Replace("\u0374", "") // GREEK NUMERAL SIGN
+                    .Replace("\u00b4", "") // ACUTE ACCENT
+                    .Replace("\u0345", "") // COMBINING GREEK YPOGEGRAMMENI
+                    .Replace("Î„", "")
+                    .Replace("`", "");
+            }
+
+            var normalizedTargetSemester = NormalizeSemester(targetSemester);
             
             // Map English department to Greek if needed
             var normalizedDepartment = dto.Department?.Trim();
-            if (normalizedDepartment == "Department of Informatics") 
+            if (string.Equals(normalizedDepartment, "Department of Informatics", StringComparison.OrdinalIgnoreCase)) 
             {
-                normalizedDepartment = "ÔÌÇÌÁ ÐËÇÑÏÖÏÑÉÊÇÓ";
+                normalizedDepartment = "Î¤ÎœÎ—ÎœÎ‘ Î Î›Î—Î¡ÎŸÎ¦ÎŸÎ¡Î™ÎšÎ—Î£";
             }
 
             var allSchedules = await _context.schedules.ToListAsync();
@@ -59,11 +67,12 @@ namespace MyIonio.Controllers
             var scheduleEntity = allSchedules.FirstOrDefault(s =>
             {
                 var sDept = s.department?.Trim();
-                var sSem = s.semester?.Trim().Replace("'", "").Replace("\u0384", "").Replace("´", "");
+                var sSem = NormalizeSemester(s.semester);
                 
                 // Check department (match either original or mapped Greek name)
                 bool deptMatch = string.Equals(sDept, dto.Department?.Trim(), StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase);
+                                 string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
+                                 (dto.Department?.Contains("Informatics", StringComparison.OrdinalIgnoreCase) == true && sDept?.Contains("Î Î›Î—Î¡ÎŸÎ¦ÎŸÎ¡Î™ÎšÎ—Î£", StringComparison.OrdinalIgnoreCase) == true);
 
                 // Check semester
                 bool semMatch = string.Equals(sSem, normalizedTargetSemester, StringComparison.OrdinalIgnoreCase);
@@ -90,10 +99,5 @@ namespace MyIonio.Controllers
 
             return Ok(scheduleEntity.courses);
         }
-
-
-
-
     } 
 }
-
