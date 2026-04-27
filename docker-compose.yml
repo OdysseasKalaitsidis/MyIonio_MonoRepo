@@ -1,0 +1,72 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: myionio-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-myionio}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - myionio-network
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: myionio-backend
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION:-Host=db;Port=5432;Database=${DB_NAME:-myionio};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER:-MyIonio}
+      - Jwt__Audience=${JWT_AUDIENCE:-MyIonioUsers}
+      - Google__ClientId=${GOOGLE_CLIENT_ID}
+      - Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      - AllowedOrigins=${FRONTEND_URL:-http://localhost}
+    depends_on:
+      - db
+    networks:
+      - myionio-network
+    ports:
+      - "5000:80"
+
+  ai-service:
+    build:
+      context: ./MyIonio-AI
+      dockerfile: Dockerfile
+    container_name: myionio-ai
+    restart: always
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    networks:
+      - myionio-network
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://api.myionio.site/api}
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    container_name: myionio-frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - myionio-network
+    ports:
+      - "8080:80"
+
+networks:
+  myionio-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

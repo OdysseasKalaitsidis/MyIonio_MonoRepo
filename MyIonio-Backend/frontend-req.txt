@@ -1,0 +1,8 @@
+Backend Changes Definition
+Endpoint: POST /api/user/courses
+
+Payload: { "semester": "ΣΤ", "courses": ["Course A", "Course B"] }
+Action: Persist this list.
+Endpoint: GET /api/user/courses/schedule?semester=ΣΤ
+
+Action: Return schedule entries matching the persisted list.

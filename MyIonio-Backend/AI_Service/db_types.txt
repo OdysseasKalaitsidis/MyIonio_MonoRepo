@@ -1,0 +1,124 @@
+
+Semester: Η'
+  Course: Αναπαράσταση και Διαχείριση Γν | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Διαχείριση Έργων Πληροφορικής  | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Παράλληλος Προγραμματισμός     | Type: 'TB4' | Hex: 544234
+  Course: Συνεργατικά Συστήματα          | Type: 'TB2' | Hex: 544232
+  Course: Τεχνολογίες Εφαρμογών στην Τεχ | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Προχωρημένα θέματα Μηχανικής Μ | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Επιχειρηματική Αναλυτική       | Type: 'Y-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce94
+  Course: Έξυπνα Περιβάλλοντα και Εφαρμο | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Επιχειρηματικότητα και Ψηφιακέ | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Επιχειρηματική Αναλυτική       | Type: 'Y-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce94
+  Course: Διαχείριση Έργων Πληροφορικής  | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Τεχνολογίες Εφαρμογών στην Τεχ | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Τεχνολογίες Εφαρμογών στην Τεχ | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Παράλληλος Προγραμματισμός     | Type: 'TB4' | Hex: 544234
+  Course: Διαχείριση Έργων Πληροφορικής  | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Πρακτική Άσκηση Διδασκαλίας    | Type: 'TB3' | Hex: 544233
+  Course: Εξόρυξη Τεράστιων Δεδομένων κα | Type: 'Elective/Other' | Hex: 456c6563746976652f4f74686572
+  Course: Πρακτική Άσκηση Διδασκαλίας    | Type: 'TB3' | Hex: 544233
+  Course: Προχωρημένα θέματα Μηχανικής Μ | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Επικοινωνία και Επεξεργασία Δε | Type: 'Y-KDE' | Hex: 592d4b4445
+  Course: Επιχειρηματικότητα και Ψηφιακέ | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Στρατηγική Επιχειρήσεων και Δι | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Επεξεργασία Ομιλίας            | Type: 'Y-BYN' | Hex: 592d42594e
+  Course: Στρατηγική Επιχειρήσεων και Δι | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Πρακτική Άσκηση Διδασκαλίας    | Type: 'TB3' | Hex: 544233
+  Course: Επεξεργασία Ομιλίας            | Type: 'Y-BYN' | Hex: 592d42594e
+  Course: Επικοινωνία και Επεξεργασία Δε | Type: 'Y-KDE' | Hex: 592d4b4445
+  Course: Επιχειρηματική Αναλυτική       | Type: 'Y-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce94
+  Course: Συνεργατικά Συστήματα          | Type: 'TB2' | Hex: 544232
+  Course: Αναπαράσταση και Διαχείριση Γν | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Συνεργατικά Συστήματα          | Type: 'TB2' | Hex: 544232
+
+Semester: Δ'
+  Course: Κοινωνικά και Νομικά Θέματα    | Type: 'TB5' | Hex: 544235
+  Course: Επιστήμη και Ανάλυση Δεδομένων | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Λειτουργικά Συστήματα          | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Λειτουργικά Συστήματα          | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Λειτουργικά Συστήματα          | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Θεωρία Γραφημάτων              | Type: 'TB1' | Hex: 544231
+  Course: Αλγόριθμοι και Πολυπλοκότητα   | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Ειδικά Θέματα Διαδικτύου       | Type: 'Elective/Other' | Hex: 456c6563746976652f4f74686572
+  Course: Θεωρία Γραφημάτων              | Type: 'TB1' | Hex: 544231
+  Course: Αλγόριθμοι και Πολυπλοκότητα   | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Ειδικά Θέματα Διαδικτύου       | Type: 'Elective/Other' | Hex: 456c6563746976652f4f74686572
+  Course: Τεχνολογίες Ανάπτυξης Εφαρμογώ | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Κοινωνικά και Νομικά Θέματα    | Type: 'TB5' | Hex: 544235
+  Course: Τεχνολογίες Ανάπτυξης Εφαρμογώ | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Επικοινωνία Ανθρώπου-Υπολογιστ | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Επιστήμη και Ανάλυση Δεδομένων | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+  Course: Επικοινωνία Ανθρώπου-Υπολογιστ | Type: 'Compulsory' | Hex: 436f6d70756c736f7279
+
+Semester: Β΄
+  Course: Πιθανότητες                    | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Διδακτική της Πληροφορικής     | Type: (None/Empty)
+  Course: Δομές Δεδομένων                | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Δομές Δεδομένων                | Type: (None/Empty)
+  Course: Ψηφιακή Ανάλυση και Σύνθεση Πρ | Type: (None/Empty)
+  Course: Διδακτική της Πληροφορικής     | Type: (None/Empty)
+  Course: Δομές Δεδομένων                | Type: (None/Empty)
+  Course: Δομές Δεδομένων                | Type: (None/Empty)
+  Course: Αγγλικά ΙΙ                     | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Ψηφιακή Ανάλυση και Σύνθεση Πρ | Type: (None/Empty)
+  Course: Διακριτά Μαθηματικά            | Type: (None/Empty)
+  Course: Προγραμματισμός                | Type: (None/Empty)
+  Course: Αγγλικά ΙΙ                     | Type: (None/Empty)
+  Course: Διακριτά Μαθηματικά            | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Ψηφιακή Ανάλυση και Μετάδοση Π | Type: (None/Empty)
+  Course: Διακριτά Μαθηματικά            | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Αντικειμενοστραφής Προγραμματι | Type: (None/Empty)
+  Course: Ψηφιακή Ανακατασκευή           | Type: (None/Empty)
+  Course: Πιθανότητες                    | Type: (None/Empty)
+
+Semester: ΣΤ΄
+  Course: Κινητές Επικοινωνίες και Ασύρμ | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Τεχνολογίες Ανάλυσης και Οπτικ | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Τεχνητή Νοημοσύνη              | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Συστήματα Υποστήριξης Αποφάσεω | Type: 'Y-BYN' | Hex: 592d42594e
+  Course: Εφαρμοσμένη Κρυπτογραφία       | Type: 'Y-KDE' | Hex: 592d4b4445
+  Course: Πλατφόρμες και Αρχιτεκτονικές  | Type: 'Y-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce94
+  Course: Βιοπληροφορική                 | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Μεταγλωττιστές                 | Type: 'TB4' | Hex: 544234
+  Course: Ασφάλεια Λογισμικού και Εφαρμο | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Διαχείριση και Μοντελοποίηση Ε | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Τεχνολογίες Ανάλυσης και Οπτικ | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Βιοπληροφορική                 | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Συστήματα Υποστήριξης Αποφάσεω | Type: 'Y-BYN' | Hex: 592d42594e
+  Course: Πλατφόρμες και Αρχιτεκτονικές  | Type: 'Y-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce94
+  Course: Μοντέλα Κβαντικού και Μοριακού | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Διαχείριση Δικτύων και Υπολογι | Type: 'E-KDE' | Hex: 452d4b4445
+  Course: Ανάλυση Κοινωνικών Δικτύων     | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Ασφάλεια Λογισμικού και Εφαρμο | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Μοντέλα Κβαντικού και Μοριακού | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Ανάκτηση Πληροφορίας           | Type: 'TB2' | Hex: 544232
+  Course: Συστήματα Υποστήριξης Αποφάσεω | Type: 'Y-BYN' | Hex: 592d42594e
+  Course: Εφαρμοσμένη Κρυπτογραφία       | Type: 'Y-KDE' | Hex: 592d4b4445
+  Course: Βιοπληροφορική                 | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Διαχείριση και Μοντελοποίηση Ε | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Μεταγλωττιστές                 | Type: 'TB4' | Hex: 544234
+  Course: Ασφάλεια Λογισμικού και Εφαρμο | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Τεχνητή Νοημοσύνη              | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Αρχές Υπολογισμού Στοχαστικών  | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Διαχείριση Ασφάλειας Πληροφορι | Type: 'Elective/Other' | Hex: 456c6563746976652f4f74686572
+  Course: Διαχείριση Ασφάλειας Πληροφορι | Type: 'Elective/Other' | Hex: 456c6563746976652f4f74686572
+  Course: Ανάλυση Κοινωνικών Δικτύων     | Type: 'E-ΨΜΑΔ' | Hex: 452dcea8ce9cce91ce94
+  Course: Μουσική Πληροφορική            | Type: 'TB5' | Hex: 544235
+  Course: Κινητές Επικοινωνίες και Ασύρμ | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Ανάκτηση Πληροφορίας           | Type: 'TB2' | Hex: 544232
+  Course: Κινητές Επικοινωνίες και Ασύρμ | Type: 'Y-KDE, MIN-KDE' | Hex: 592d4b44452c204d494e2d4b4445
+  Course: Αρχές Υπολογισμού Στοχαστικών  | Type: 'E-BYN' | Hex: 452d42594e
+  Course: Διοίκηση Ασφάλειας Πληροφοριακ | Type: 'E-KDE' | Hex: 452d4b4445
+  Course: Εφαρμοσμένη Κρυπτογραφία       | Type: 'Y-KDE' | Hex: 592d4b4445
+  Course: Τεχνητή Νοημοσύνη              | Type: 'Y-BYN, MIN-BYN' | Hex: 592d42594e2c204d494e2d42594e
+  Course: Τεχνολογίες Ανάλυσης και Οπτικ | Type: 'Y-ΨΜΑΔ, MIN-ΨΜΑΔ' | Hex: 592dcea8ce9cce91ce942c204d494e2dcea8ce9cce91ce94
+  Course: Μουσική Πληροφορική            | Type: 'TB5' | Hex: 544235
+  Course: Διαχείριση Δικτύων και Υπολογι | Type: 'E-KDE' | Hex: 452d4b4445

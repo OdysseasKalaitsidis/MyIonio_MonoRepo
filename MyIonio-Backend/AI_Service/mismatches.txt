@@ -1,0 +1,205 @@
+MISMATCH: 'Πιθανότητες' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Πιθανότητες'
+--------------------
+MISMATCH: 'Διδακτική της Πληροφορικής' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διδακτική της Πληροφορικής'
+--------------------
+MISMATCH: 'Δομές Δεδομένων' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Δομές Δεδομένων'
+--------------------
+MISMATCH: 'Δομές Δεδομένων' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Δομές Δεδομένων'
+--------------------
+MISMATCH: 'Διδακτική της Πληροφορικής' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διδακτική της Πληροφορικής'
+--------------------
+MISMATCH: 'Δομές Δεδομένων' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Δομές Δεδομένων'
+--------------------
+MISMATCH: 'Δομές Δεδομένων' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Δομές Δεδομένων'
+--------------------
+MISMATCH: 'Ψηφιακή Αναπαράσταση και Μετάδοση Πληροφορίας' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Ψηφιακή Αναπαράσταση και Μετάδοση Πληροφορίας'
+--------------------
+MISMATCH: 'Διακριτά Μαθηματικά' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διακριτά Μαθηματικά'
+--------------------
+MISMATCH: 'Δομές Δεδομένων' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Δομές Δεδομένων'
+--------------------
+MISMATCH: 'Διακριτά Μαθηματικά' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διακριτά Μαθηματικά'
+--------------------
+MISMATCH: 'Ψηφιακή Αναπαράσταση και Μετάδοση Πληροφορίας' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Ψηφιακή Αναπαράσταση και Μετάδοση Πληροφορίας'
+--------------------
+MISMATCH: 'Διακριτά Μαθηματικά' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διακριτά Μαθηματικά'
+--------------------
+MISMATCH: 'Διδακτική της Πληροφορικής' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Διδακτική της Πληροφορικής'
+--------------------
+MISMATCH: 'Πιθανότητες' (Schedule: 8)
+  Current: 'None'
+  Expected: 'Compulsory'
+  Name repr: 'Πιθανότητες'
+--------------------
+MISMATCH: 'Αναπαράσταση και Διαχείριση Γνώσης' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΒΥΝ'
+  Name repr: 'Αναπαράσταση και Διαχείριση Γνώσης'
+--------------------
+MISMATCH: 'Διαχείριση Έργων Πληροφορικής' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΨΜΑΔ'
+  Name repr: 'Διαχείριση Έργων Πληροφορικής'
+--------------------
+MISMATCH: 'Παράλληλος Προγραμματισμός' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB4'
+  Name repr: 'Παράλληλος Προγραμματισμός'
+--------------------
+MISMATCH: 'Συνεργατικά Συστήματα' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB2'
+  Name repr: 'Συνεργατικά Συστήματα'
+--------------------
+MISMATCH: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΒΥΝ'
+  Name repr: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη'
+--------------------
+MISMATCH: 'Επιχειρηματική Αναλυτική' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΨΜΑΔ'
+  Name repr: 'Επιχειρηματική Αναλυτική'
+--------------------
+MISMATCH: 'Έξυπνα Περιβάλλοντα και Εφαρμογές' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΚΔΕ'
+  Name repr: 'Έξυπνα Περιβάλλοντα και Εφαρμογές'
+--------------------
+MISMATCH: 'Επιχειρηματικότητα και Ψηφιακές Πλατφόρμες' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΨΜΑΔ'
+  Name repr: 'Επιχειρηματικότητα και Ψηφιακές Πλατφόρμες'
+--------------------
+MISMATCH: 'Επιχειρηματική Αναλυτική' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΨΜΑΔ'
+  Name repr: 'Επιχειρηματική Αναλυτική'
+--------------------
+MISMATCH: 'Διαχείριση Έργων Πληροφορικής' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΨΜΑΔ'
+  Name repr: 'Διαχείριση Έργων Πληροφορικής'
+--------------------
+MISMATCH: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΒΥΝ'
+  Name repr: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη'
+--------------------
+MISMATCH: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΒΥΝ'
+  Name repr: 'Τεχνολογίες Εφαρμογών στην Τεχνητή Νοημοσύνη'
+--------------------
+MISMATCH: 'Παράλληλος Προγραμματισμός' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB4'
+  Name repr: 'Παράλληλος Προγραμματισμός'
+--------------------
+MISMATCH: 'Διαχείριση Έργων Πληροφορικής' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΨΜΑΔ'
+  Name repr: 'Διαχείριση Έργων Πληροφορικής'
+--------------------
+MISMATCH: 'Πρακτική Άσκηση Διδασκαλίας' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB3'
+  Name repr: 'Πρακτική Άσκηση Διδασκαλίας'
+--------------------
+MISMATCH: 'Πρακτική Άσκηση Διδασκαλίας' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB3'
+  Name repr: 'Πρακτική Άσκηση Διδασκαλίας'
+--------------------
+MISMATCH: 'Επικοινωνία και Επεξεργασία Δεδομένων Δικτύων Αισθητήρων' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΚΔΕ'
+  Name repr: 'Επικοινωνία και Επεξεργασία Δεδομένων Δικτύων Αισθητήρων'
+--------------------
+MISMATCH: 'Επιχειρηματικότητα και Ψηφιακές Πλατφόρμες' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΨΜΑΔ'
+  Name repr: 'Επιχειρηματικότητα και Ψηφιακές Πλατφόρμες'
+--------------------
+MISMATCH: 'Επεξεργασία Ομιλίας' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΒΥΝ'
+  Name repr: 'Επεξεργασία Ομιλίας'
+--------------------
+MISMATCH: 'Πρακτική Άσκηση Διδασκαλίας' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB3'
+  Name repr: 'Πρακτική Άσκηση Διδασκαλίας'
+--------------------
+MISMATCH: 'Επεξεργασία Ομιλίας' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΒΥΝ'
+  Name repr: 'Επεξεργασία Ομιλίας'
+--------------------
+MISMATCH: 'Επικοινωνία και Επεξεργασία Δεδομένων Δικτύων Αισθητήρων' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΚΔΕ'
+  Name repr: 'Επικοινωνία και Επεξεργασία Δεδομένων Δικτύων Αισθητήρων'
+--------------------
+MISMATCH: 'Επιχειρηματική Αναλυτική' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Υ-ΨΜΑΔ'
+  Name repr: 'Επιχειρηματική Αναλυτική'
+--------------------
+MISMATCH: 'Συνεργατικά Συστήματα' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB2'
+  Name repr: 'Συνεργατικά Συστήματα'
+--------------------
+MISMATCH: 'Αναπαράσταση και Διαχείριση Γνώσης' (Schedule: 6)
+  Current: 'None'
+  Expected: 'Ε-ΒΥΝ'
+  Name repr: 'Αναπαράσταση και Διαχείριση Γνώσης'
+--------------------
+MISMATCH: 'Συνεργατικά Συστήματα' (Schedule: 6)
+  Current: 'None'
+  Expected: 'TB2'
+  Name repr: 'Συνεργατικά Συστήματα'
+--------------------
