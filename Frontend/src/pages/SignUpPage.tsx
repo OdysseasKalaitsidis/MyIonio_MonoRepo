@@ -1,12 +1,11 @@
 import { useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import type { AxiosError } from "axios";
-import type { AppDispatch, RootState } from "../app/store";
+import type { AppDispatch } from "../app/store";
 import { Button } from "../components/Button";
-import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { registerUser, registerUserWithTest } from "../features/auth/api";
-import { signIn, registerWithGoogle } from "../features/auth/authSlice";
+import { signIn } from "../features/auth/authSlice";
 import type { RegisterRequest } from "../features/auth/models";
 import { TermsModal } from "../components/TermsModal";
 import { PrivacyPolicyModal } from "../components/PrivacyPolicyModal";
@@ -20,7 +19,7 @@ export default function SignUpPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { quizRecommendation, quizUserAnswers, clearQuizData } = useQuizData();
-  const { department, semester } = useSelector((state: RootState) => state.preferences);
+  // const { department, semester } = useSelector((state: RootState) => state.preferences);
 
   const availableSemesters = useMemo(() => {
       // Force Summer/Spring semester (Even) as requested
@@ -44,7 +43,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -54,59 +52,11 @@ export default function SignUpPage() {
 
   const shouldSubmitWithTest =
     !!quizRecommendation && (quizUserAnswers?.length ?? 0) > 0;
-
-    const handleGoogleSuccess = (idToken: string) => {
-        setGoogleToken(idToken);
-        
-        // If we already have preferences (dept/semester), use them
-        if (department && semester) {
-             handleQuickPickerComplete(department, semester.toString(), idToken);
-        } else {
-             setShowQuickPicker(true);
-        }
-    };
-
-    const handleQuickPickerComplete = async (dept: string, sem: string, tokenOverride?: string) => {
-        const tokenToUse = tokenOverride || googleToken;
-        if (!tokenToUse) return;
-        
-        setShowQuickPicker(false);
-        setLoading(true); 
-
- 
-      
-        let recommendationPayload = null;
-        if (shouldSubmitWithTest && quizRecommendation) {
-             recommendationPayload = quizRecommendation;
-        }
-
-        try {
-            const result = await dispatch(registerWithGoogle({
-                idToken: tokenToUse,
-                department: dept,
-                semester: sem, 
-                recommendation: recommendationPayload
-            }));
-
-            if (registerWithGoogle.fulfilled.match(result)) {
-                 setSuccessMessage("Google registration successful! Redirecting...");
-                 setTimeout(() => navigate("/dashboard"), 1500);
-            } else {
-                 if (result.payload) {
-                    setError(result.payload as string);
-                 } else {
-                     setError("Google registration failed.");
-                 }
-            }
-
-        } catch (err) {
-             console.error("Google register unexpected error:", err);
-             setError("An unexpected error occurred during Google registration.");
-        } finally {
-            setLoading(false);
-            if (!tokenOverride) setGoogleToken(null);
-        }
-    };
+  const handleQuickPickerComplete = async (dept: string, sem: string) => {
+    setShowQuickPicker(false);
+    // Google registration is temporarily disabled
+    console.log("Quick picker completed with:", dept, sem);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
