@@ -168,4 +168,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Auto-Migrate Database on Startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (db.Database.GetPendingMigrations().Any())
+    {
+        Console.WriteLine("Applying pending migrations...");
+        db.Database.Migrate();
+        Console.WriteLine("Migrations applied successfully.");
+    }
+}
+
 app.Run();

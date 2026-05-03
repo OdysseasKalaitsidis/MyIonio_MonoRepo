@@ -81,15 +81,16 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8"
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-[70] overflow-hidden"
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-4xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-[600px]"
+            >
             {/* Header */}
             <div className="relative p-6 bg-gradient-to-br from-ionian-blue to-blue-700 text-white">
               <button
@@ -227,6 +228,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                 )}
               </div>
             </div>
+            </motion.div>
           </motion.div>
         </>
       )}
