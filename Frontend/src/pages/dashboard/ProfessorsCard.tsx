@@ -38,11 +38,14 @@ export function ProfessorsCard() {
       </div>
 
       {/* Footer Link */}
-      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex justify-center">
+      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-1 text-sm font-semibold text-slate-500 dark:text-gray-400 group-hover:text-ionian-blue dark:group-hover:text-blue-400 transition-colors">
-            <span>Explore Programms</span>
+            <span>Explore Programs</span>
             <ChevronRight size={16} />
           </div>
+          <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-ionian-blue dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+            New
+          </span>
       </div>
     </div>
   );
