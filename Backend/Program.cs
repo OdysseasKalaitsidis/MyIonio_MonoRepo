@@ -119,7 +119,16 @@ builder.Services.AddCors(options =>
     var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var finalOrigins = new List<string>();
+        foreach (var origin in origins)
+        {
+            var trimmed = origin.Trim().TrimEnd('/');
+            finalOrigins.Add(trimmed);
+            finalOrigins.Add(trimmed + "/");
+        }
+
+        policy.WithOrigins(finalOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -160,8 +169,7 @@ app.UseRateLimiter();
 // Use CORS
 app.UseCors("AllowFrontend");
 
-
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled because Nginx handles SSL
 
 app.UseAuthentication();
 app.UseAuthorization();
