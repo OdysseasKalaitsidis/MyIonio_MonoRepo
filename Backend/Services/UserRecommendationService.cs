@@ -1,12 +1,13 @@
-// Services/UserRecommendationService.cs
 using MyIonio.Data;
 using MyIonio.DTOs;
 using MyIonio.Interfaces;
 using MyIonio.Models;
 using Microsoft.EntityFrameworkCore;
 
-public class UserRecommendationService : IUserRecommendationService
+namespace MyIonio.Services
 {
+    public class UserRecommendationService : IUserRecommendationService
+    {
     private readonly AppDbContext _context;
 
     public UserRecommendationService(AppDbContext context)
@@ -43,5 +44,6 @@ public class UserRecommendationService : IUserRecommendationService
             Reasoning = System.Text.Json.JsonSerializer.Deserialize<ReasoningDto>(result.ReasoningJson)!
         };
     }
+}
 }
 

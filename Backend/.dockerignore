@@ -1,0 +1,20 @@
+# .NET ignores
+**/bin/
+**/obj/
+**/publish/
+
+# Git
+.git/
+.gitignore
+
+# Frontend
+**/node_modules/
+Frontend/dist/
+
+# Deployment artifacts
+myionio.tar.gz
+
+# Redundant monorepo folders (safety)
+MyIonio-Backend/
+MyIonio-AI/
+MyIonio-Frontend/

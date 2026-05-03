@@ -8,8 +8,10 @@ Write-Host "Starting deployment to $VM_USER@$VM_IP..." -ForegroundColor Cyan
 
 # 1. Create a tarball of the project
 Write-Host "Creating project bundle..." -ForegroundColor Yellow
-$exclude = @("--exclude=node_modules", "--exclude=.git", "--exclude=bin", "--exclude=obj", "--exclude=Frontend/dist", "--exclude=Backend/publish", "--exclude=MyIonio-Backend", "--exclude=MyIonio-AI", "--exclude=MyIonio-Frontend")
-tar czf myionio.tar.gz @exclude .
+$ROOT_DIR = if (Test-Path "$PSScriptRoot/../Backend") { "$PSScriptRoot/.." } else { "." }
+$exclude = @("node_modules", ".git", "bin", "obj", "Frontend/dist", "Backend/publish", "MyIonio-Backend", "MyIonio-AI", "MyIonio-Frontend")
+$excludeArgs = $exclude | ForEach-Object { "--exclude=$_" }
+tar czf myionio.tar.gz -C $ROOT_DIR $excludeArgs .
 
 # 2. Upload to VM
 Write-Host "Uploading to VM..." -ForegroundColor Yellow
@@ -19,6 +21,8 @@ scp myionio.tar.gz "$($VM_USER)@$($VM_IP):~/"
 Write-Host "Running Docker Compose on VM..." -ForegroundColor Yellow
 $remote_commands = @"
 mkdir -p $REMOTE_DIR
+# Clean up redundant directories to prevent duplicate definition errors
+rm -rf $REMOTE_DIR/MyIonio-Backend $REMOTE_DIR/Backend/MyIonio-Backend $REMOTE_DIR/MyIonio-AI $REMOTE_DIR/MyIonio-Frontend
 tar -xzf ~/myionio.tar.gz -C $REMOTE_DIR
 cd $REMOTE_DIR
 docker compose up -d --build

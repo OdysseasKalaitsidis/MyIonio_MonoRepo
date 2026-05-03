@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace MyIonio.Controllers
 {
     [ApiController]
-    [Route ("api/")]
-    public class GeUserRecommendationController: ControllerBase 
+    [Route("api/[controller]")]
+    public class UserRecommendationController : ControllerBase 
     {
         private readonly IUserRecommendationService _service;
-        private readonly ILogger<GeUserRecommendationController> _logger;
+        private readonly ILogger<UserRecommendationController> _logger;
 
-        public GeUserRecommendationController (IUserRecommendationService service, ILogger<GeUserRecommendationController> logger)
+        public UserRecommendationController(IUserRecommendationService service, ILogger<UserRecommendationController> logger)
         {
             _service = service;
             _logger = logger;

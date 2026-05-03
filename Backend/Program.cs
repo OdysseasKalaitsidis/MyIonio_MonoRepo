@@ -16,9 +16,11 @@ using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//  Explicitly load appsettings.json
+// Configuration
 builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables();
 
@@ -30,35 +32,23 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Swagger
+// OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Load configuration
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddUserSecrets<Program>(optional: true)
-    .AddEnvironmentVariables();
-
-// Bind JwtSettings
+// JWT Configuration
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-// Add AuthService
-builder.Services.AddScoped<AuthService>();
-
-// OpenAI
+// External Services
 builder.Services.AddSingleton(_ =>
 {
     var apiKey = builder.Configuration["OpenAI:ApiKey"];
     return new OpenAIClient(apiKey);
 });
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
-    // 1. Global Rate Limit: 60 requests per minute per IP
     options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -70,8 +60,7 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1)
             }));
 
-    // 2. Signup Rate Limit: 3 requests per hour per IP
-    options.AddPolicy("Signup", httpContext =>
+    options.AddPolicy<string>("Signup", httpContext =>
         System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
@@ -85,8 +74,7 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
-
-// JWT Authentication
+// JWT Authentication setup
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
 if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Key))
     throw new InvalidOperationException("JWT key is missing in configuration!");
@@ -112,7 +100,6 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
     
-    // Read JWT from Cookie (for Google Auth flow)
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -126,9 +113,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
-
-// CORS
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -142,15 +126,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Services
+// Application Services
 builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IUserRecommendationService, UserRecommendationService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<PasswordHasherauth>();
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddScoped<IUserRecommendationService, UserRecommendationService>();
-builder.Services.AddHttpClient();
 builder.Services.AddScoped<IExaminationScheduleService, ExaminationScheduleService>();
+builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
 
@@ -159,9 +142,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Middleware
+app.UseMiddleware<MyIonio.Middleware.ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 
@@ -173,12 +160,6 @@ app.UseRateLimiter();
 // Use CORS
 app.UseCors("AllowFrontend");
 
-// Swagger
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 

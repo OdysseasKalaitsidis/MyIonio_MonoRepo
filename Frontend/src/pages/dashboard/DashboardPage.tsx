@@ -12,6 +12,7 @@ import type { RootState } from "../../app/store";
 import { QuickPickerModal } from "./QuickPickerModal";
 import { ExamCard } from "./ExamCard";
 import { LibraryCard } from "./LibraryCard";
+import { ProfessorsCard } from "./ProfessorsCard";
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -114,17 +115,11 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Exam & Library Row */}
-            <div className="lg:col-span-2 flex flex-col lg:flex-row gap-6">
-                {/* Schedule Card - Reduced width (~60%) */}
-                <div className="lg:basis-3/5">
-                    <ExamCard />
-                </div>
-                
-                {/* Library Card - Increased width (~40%) */}
-                <div className="lg:basis-2/5">
-                    <LibraryCard />
-                </div>
+            {/* Exam, Library & Professors Row */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <ExamCard />
+                <LibraryCard />
+                <ProfessorsCard />
             </div>
 
             {/* Quick Links Row (Dias, E-Class, Eudoxus) - Approx 70% height/size */}
