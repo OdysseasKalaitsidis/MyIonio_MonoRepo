@@ -4,10 +4,11 @@ Welcome to the MyIonio Monorepo. This project is a comprehensive platform design
 
 ## 📁 Repository Structure
 
-- **[Backend/](file:///c:/ODYSSEAS/A_PROJECTS/MyIonio_MonoRepo/Backend)**: ASP.NET Core 8.0 Web API.
-- **[Frontend/](file:///c:/ODYSSEAS/A_PROJECTS/MyIonio_MonoRepo/Frontend)**: React 19 + Vite + TypeScript application.
-- **[scripts/](file:///c:/ODYSSEAS/A_PROJECTS/MyIonio_MonoRepo/scripts)**: Deployment and maintenance scripts.
-- **[docker-compose.yml](file:///c:/ODYSSEAS/A_PROJECTS/MyIonio_MonoRepo/docker-compose.yml)**: Orchestration for local and production deployment.
+- **[Backend/](Backend)**: ASP.NET Core 8.0 Web API.
+- **[Frontend/](Frontend)**: React 19 + Vite + TypeScript application.
+- **[.github/workflows/](.github/workflows)**: CI/CD automation via GitHub Actions.
+- **[scripts/](scripts)**: Deployment and maintenance scripts.
+- **[docker-compose.yml](docker-compose.yml)**: Orchestration for local and production deployment.
 
 ## 🚀 Quick Start
 
@@ -46,11 +47,20 @@ npm run dev
 ```
 
 ## 🚢 Deployment
-Deployment is automated via PowerShell. See the `scripts/` directory for more details.
-To deploy to the production VM:
+
+### GitHub Actions (Automated)
+The project is configured with GitHub Actions for automated deployment to the VPS on every push to the `master` branch.
+Required Secrets in GitHub:
+- `SSH_HOST`: VPS IP/Domain
+- `SSH_USER`: SSH Username
+- `SSH_PRIVATE_KEY`: Private SSH Key
+- `SERVER_PATH`: Absolute path to repo on server
+
+### Manual Deployment
+You can also use the provided PowerShell script for manual deployment:
 ```powershell
 ./scripts/deploy.ps1
 ```
 
 ## 📝 License
-This project is licensed under the MIT License - see the [Frontend/LICENSE](file:///c:/ODYSSEAS/A_PROJECTS/MyIonio_MonoRepo/Frontend/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
