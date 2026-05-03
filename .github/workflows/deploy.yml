@@ -17,8 +17,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Lowercase image name
-        run: echo "IMAGE_NAME=${{ github.repository_owner }}/myionio-backend" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+      - name: Set Image Name
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=$OWNER/myionio-backend" >> $GITHUB_ENV
         shell: bash
 
       - name: Log in to the Container registry
@@ -44,8 +46,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Lowercase image name
-        run: echo "IMAGE_NAME=${{ github.repository_owner }}/myionio-frontend" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+      - name: Set Image Name
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=$OWNER/myionio-frontend" >> $GITHUB_ENV
         shell: bash
 
       - name: Log in to the Container registry
