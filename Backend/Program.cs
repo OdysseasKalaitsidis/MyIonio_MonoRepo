@@ -168,15 +168,28 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Auto-Migrate Database on Startup
-using (var scope = app.Services.CreateScope())
+// Auto-Migrate Database on Startup with Retries
+for (int i = 0; i < 5; i++)
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.GetPendingMigrations().Any())
+    try
     {
-        Console.WriteLine("Applying pending migrations...");
-        db.Database.Migrate();
-        Console.WriteLine("Migrations applied successfully.");
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            if (db.Database.GetPendingMigrations().Any())
+            {
+                Console.WriteLine("Applying pending migrations...");
+                db.Database.Migrate();
+                Console.WriteLine("Migrations applied successfully.");
+            }
+            break;
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database migration attempt {i + 1} failed: {ex.Message}");
+        if (i == 4) throw;
+        System.Threading.Thread.Sleep(5000);
     }
 }
 
