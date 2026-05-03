@@ -1,5 +1,5 @@
 import { api } from "../../lib/axios";
-import { ScheduleResponseDto } from "../schedule/api";
+import type { ScheduleResponseDto } from "../schedule/api";
 
 export interface ProfessorSchedule {
     name: string;

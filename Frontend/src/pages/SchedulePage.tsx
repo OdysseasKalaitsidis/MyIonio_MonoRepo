@@ -6,12 +6,16 @@ import { useCurrentSchedule } from "../hooks/useCurrentSchedule";
 import type { CourseEntry } from "../features/schedule/models";
 import { MapPin, User, Building2, Settings2, Calendar, ChevronRight } from "lucide-react";
 import { SchedulePickerModal } from "../components/schedule/SchedulePickerModal";
+import { CourseDetailsModal } from "../components/modals/CourseDetailsModal";
+import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 
 const WEEK_ORDER = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"];
 
 export default function SchedulePage() {
+  const navigate = useNavigate();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<CourseEntry | null>(null);
 
   // Initialize selected day to today or Monday
   const [selectedDay, setSelectedDay] = useState<string>(() => {
@@ -102,10 +106,18 @@ export default function SchedulePage() {
                 key={selectedDay} 
                 courses={displayCourses} 
                 currentCourse={currentCourse}
+                onCourseClick={setSelectedCourse}
+                onProfessorClick={(name) => navigate(`/professors?name=${encodeURIComponent(name)}`)}
               />
             </AnimatePresence>
           </div>
         )}
+
+        <CourseDetailsModal 
+          course={selectedCourse} 
+          isOpen={!!selectedCourse} 
+          onClose={() => setSelectedCourse(null)} 
+        />
       </div>
     </PageLayout>
   );
@@ -115,9 +127,13 @@ export default function SchedulePage() {
 function DailyView({ 
     courses, 
     currentCourse,
+    onCourseClick,
+    onProfessorClick
 }: { 
     courses: CourseEntry[], 
     currentCourse: CourseEntry | null,
+    onCourseClick: (course: CourseEntry) => void,
+    onProfessorClick: (name: string) => void
 }) {
   if (courses.length === 0) {
     return (
@@ -162,8 +178,9 @@ function DailyView({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: idx * 0.1 }}
+          onClick={() => onCourseClick(c)}
           className={clsx(
-              "group relative flex flex-col sm:flex-row gap-5 p-6 md:p-8 rounded-3xl transition-all duration-300 border shadow-sm",
+              "group relative flex flex-col sm:flex-row gap-5 p-6 md:p-8 rounded-3xl transition-all duration-300 border shadow-sm cursor-pointer",
               isCurrent 
               ? "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 border-blue-600 shadow-xl shadow-blue-500/25 ring-1 ring-blue-400/50 z-10 scale-[1.02]"
               : "bg-gradient-to-br from-blue-50/50 to-slate-100/80 dark:bg-white/5 dark:from-white/10 dark:to-white/5 backdrop-blur-xl border-white/60 dark:border-white/10 hover:shadow-lg hover:shadow-slate-200/50 hover:scale-[1.01]"
@@ -211,9 +228,17 @@ function DailyView({
                   <MapPin size={16} className={isCurrent ? "text-white" : "text-ionian-blue"} /> 
                   {c.room}
               </span>
-              <span className="flex items-center gap-2 transition-transform group-hover:translate-x-0.5 duration-300 delay-75">
+              <span 
+                className="flex items-center gap-2 transition-transform group-hover:translate-x-0.5 duration-300 delay-75 hover:text-ionian-blue group/prof"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onProfessorClick(c.professor);
+                }}
+              >
                   <User size={16} className={isCurrent ? "text-white/80" : "text-ionian-blue"} /> 
-                  <span className="truncate max-w-[200px]">{c.professor}</span>
+                  <span className="truncate max-w-[200px] underline decoration-dotted underline-offset-4 decoration-transparent group-hover/prof:decoration-current transition-all">
+                    {c.professor}
+                  </span>
               </span>
               {c.building && (
                 <span className="flex items-center gap-2 hidden sm:flex transition-transform group-hover:translate-x-0.5 duration-300 delay-100">

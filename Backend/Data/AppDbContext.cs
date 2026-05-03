@@ -25,6 +25,7 @@ namespace MyIonio.Data
         public DbSet<Schedules> schedules { get; set; }
         public DbSet<weekly_menus> weekly_menus { get; set; }
         public DbSet<ExaminationSchedule> ExaminationSchedules { get; set; }
+        public DbSet<CourseReview> CourseReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

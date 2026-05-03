@@ -4,24 +4,34 @@ import { Link } from "react-router-dom";
 import { PageLayout } from "../components/layout/PageLayout";
 import { Search, User, MapPin, Building2, Clock, Calendar, ChevronRight } from "lucide-react";
 import { getProfessors, getProfessorSchedule } from "../features/professors/api";
-import { ScheduleResponseDto } from "../features/schedule/api";
+import type { ScheduleResponseDto } from "../features/schedule/api";
+import { useSearchParams } from "react-router-dom";
+import { CourseDetailsModal } from "../components/modals/CourseDetailsModal";
+import type { CourseEntry } from "../features/schedule/models";
 import clsx from "clsx";
 
 const WEEK_ORDER = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"];
-
 export default function ProfessorsPage() {
+    const [searchParams] = useSearchParams();
     const [professors, setProfessors] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedProfessor, setSelectedProfessor] = useState<string | null>(null);
     const [professorSchedule, setProfessorSchedule] = useState<ScheduleResponseDto[]>([]);
     const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState<CourseEntry | null>(null);
 
     useEffect(() => {
         const fetchProfessors = async () => {
             try {
                 const data = await getProfessors();
                 setProfessors(data);
+                
+                // Handle initial professor from URL
+                const nameFromUrl = searchParams.get("name");
+                if (nameFromUrl && data.includes(nameFromUrl)) {
+                    setSelectedProfessor(nameFromUrl);
+                }
             } catch (error) {
                 console.error("Failed to fetch professors", error);
             } finally {
@@ -29,7 +39,7 @@ export default function ProfessorsPage() {
             }
         };
         fetchProfessors();
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         if (selectedProfessor) {
@@ -209,7 +219,12 @@ export default function ProfessorsPage() {
                                                         {dayCourses.map((course, idx) => (
                                                             <div 
                                                                 key={idx}
-                                                                className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 p-5 rounded-2xl hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition-all group"
+                                                                onClick={() => setSelectedCourse({
+                                                                    ...course,
+                                                                    time_start: course.time_start.slice(0, 5),
+                                                                    time_end: course.time_end.slice(0, 5)
+                                                                })}
+                                                                className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 p-5 rounded-2xl hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition-all group cursor-pointer"
                                                             >
                                                                 <div className="flex justify-between items-start mb-3">
                                                                     <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-ionian-blue dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -252,6 +267,12 @@ export default function ProfessorsPage() {
                         </AnimatePresence>
                     </div>
                 </div>
+
+                <CourseDetailsModal 
+                    course={selectedCourse}
+                    isOpen={!!selectedCourse}
+                    onClose={() => setSelectedCourse(null)}
+                />
             </div>
         </PageLayout>
     );
