@@ -14,10 +14,10 @@
 
 <p align="center">
   <img src="docs/screenshots/dashboard.png" width="45%" alt="Dashboard" />
-  <img src="docs/screenshots/schedule_view.png" width="45%" alt="Schedule View" />
+  <img src="docs/screenshots/schedule.png" width="45%" alt="Schedule View" />
 </p>
 <p align="center">
-  <img src="docs/screenshots/semester_select.png" width="45%" alt="Semester Selection" />
+  <img src="docs/screenshots/semester_selection.png" width="45%" alt="Semester Selection" />
   <img src="docs/screenshots/course_selection.png" width="45%" alt="Course Selection" />
 </p>
 
