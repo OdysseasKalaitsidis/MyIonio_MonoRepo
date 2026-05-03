@@ -1,5 +1,6 @@
 services:
   backend:
+    image: ghcr.io/odysseaskalaitsidis/myionio_monorepo-backend:latest
     build:
       context: ./Backend
       dockerfile: Dockerfile
@@ -12,7 +13,7 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE:-MyIonioUsers}
       - Google__ClientId=${GOOGLE_CLIENT_ID}
       - Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
-      - AllowedOrigins=${FRONTEND_URL:-http://localhost}
+      - AllowedOrigins=${FRONTEND_URL:-https://myionio.site}
     networks:
       - myionio-network
     healthcheck:
@@ -24,6 +25,7 @@ services:
       - "5000:80"
 
   frontend:
+    image: ghcr.io/odysseaskalaitsidis/myionio_monorepo-frontend:latest
     build:
       context: ./Frontend
       dockerfile: Dockerfile

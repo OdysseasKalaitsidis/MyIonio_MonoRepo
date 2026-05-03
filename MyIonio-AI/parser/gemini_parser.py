@@ -11,7 +11,7 @@ load_dotenv()
 
 # --- Configuration ---
 API_KEY = os.getenv("GEMINI_API_KEY") 
-MODEL_ID = "gemini-2.5-flash" 
+MODEL_ID = "gemini-2.0-flash" 
 
 
 COURSE_LIST_SCHEMA = types.Schema(
@@ -21,21 +21,22 @@ COURSE_LIST_SCHEMA = types.Schema(
         properties={
             "course_name": types.Schema(type=types.Type.STRING),
             "professor": types.Schema(type=types.Type.STRING),
-            "time_start": types.Schema(type=types.Type.STRING, format="HH:MM"),
-            "time_end": types.Schema(type=types.Type.STRING, format="HH:MM"),
+            "time_start": types.Schema(type=types.Type.STRING, format="HH:MM", description="Start time in 24h format"),
+            "time_end": types.Schema(type=types.Type.STRING, format="HH:MM", description="End time in 24h format"),
             "room": types.Schema(type=types.Type.STRING),
-            "building": types.Schema(type=types.Type.STRING)
+            "building": types.Schema(type=types.Type.STRING),
+            "type": types.Schema(type=types.Type.STRING, description="Type of class: 'Θεωρία', 'Εργαστήριο', 'Φροντιστήριο', or 'Σεμινάριο'")
         },
-        required=["course_name", "professor", "time_start", "time_end", "room", "building"]
+        required=["course_name", "professor", "time_start", "time_end", "room", "building", "type"]
     )
 )
 
 SCHEDULE_SCHEMA = types.Schema(
     type=types.Type.OBJECT,
     properties={
-        "department": types.Schema(type=types.Type.STRING, description="Extracted department name."),
-        "semester": types.Schema(type=types.Type.STRING, description="Extracted semester."),
-        "academic_year": types.Schema(type=types.Type.STRING, description="Extracted academic year."),
+        "department": types.Schema(type=types.Type.STRING, description="Standardized department name."),
+        "semester": types.Schema(type=types.Type.STRING, description="Standardized semester letter: Α,Β,Γ,Δ,Ε,Ζ,Η,ΣΤ"),
+        "academic_year": types.Schema(type=types.Type.STRING, description="e.g., 2024-2025"),
         
         "schedule_by_day": types.Schema(
             type=types.Type.OBJECT,
@@ -53,25 +54,20 @@ SCHEDULE_SCHEMA = types.Schema(
 
 # --- Prompt ---
 GENERIC_EXTRACTION_PROMPT = """
-You are an expert at extracting Greek university weekly course schedules from timetable PDFs.
+You are an advanced academic document parser for Greek Universities.
+TASK: Extract EVERY course from the provided timetable into structured JSON.
 
-TASK: Extract ALL courses from the provided document into structured JSON.
-Crucial Rule: DO NOT merge consecutive time slots - keep each hour as a separate entry.
+CRITICAL RULES:
+1. COURSE TYPE: Identify if a course is a Theory (Θεωρία), Laboratory (Εργαστήριο), or Tutorial (Φροντιστήριο). If unclear, default to 'Θεωρία'.
+2. SEMESTER: Map any semester indicator (e.g., '1ο', 'A', '1st', 'Winter') to its corresponding Greek Letter (Α, Β, Γ, Δ, Ε, ΣΤ, Ζ, Η).
+3. TIME SLOTS: Preserve exact hours. If a course spans multiple hours (e.g., 09:00-12:00), create ONE entry with the full start/end time.
+4. GREEK LANGUAGE: Use Greek characters for all text fields except time.
+5. NO DUPLICATES: Ensure each unique class session is captured exactly once.
 
-EXPECTED TABLE STRUCTURE:
-- First column: Time slots (e.g., "09:00-10:00")
-- Remaining columns: Days of the week.
-
-OUTPUT REQUIREMENTS:
-- Use the STRICT JSON Schema provided.
-- Map columns to these exact keys: "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή".
-- Extract EVERY course visible.
-- Preserve all Greek characters exactly as shown.
-- Time must be HH:MM format.
-- The semester must refer to a greek letter Α,Β,Γ,Δ,Ε,Ζ,Η,ΣΤ,Ε
+DEPARTMENT CONTEXT: {dept_context}
 """
 
-def parse_schedule_with_gemini(pdf_path: str) -> dict:
+def parse_schedule_with_gemini(pdf_path: str, dept_context: str = "Standard Greek University Timetable") -> dict:
     
     if not API_KEY:
         logger.error("GEMINI_API_KEY is missing from environment variables.")
@@ -95,11 +91,13 @@ def parse_schedule_with_gemini(pdf_path: str) -> dict:
             raise ValueError("File processing failed on Gemini server.")
 
         logger.info(f"Calling {MODEL_ID} with structured output schema...")
+        prompt = GENERIC_EXTRACTION_PROMPT.format(dept_context=dept_context)
+        
         response = client.models.generate_content(
             model=MODEL_ID,
             contents=[
                 uploaded_file,
-                GENERIC_EXTRACTION_PROMPT
+                prompt
             ],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
