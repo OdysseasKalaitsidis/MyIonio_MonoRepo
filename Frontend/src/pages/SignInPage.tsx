@@ -118,6 +118,7 @@ export default function SignInPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 
+{/* Temporarily disabled
             <div className="flex items-center gap-4 my-2">
               <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
               <span className="text-xs uppercase text-slate-500 dark:text-gray-400 font-medium">
@@ -127,6 +128,7 @@ export default function SignInPage() {
             </div>
 
             <GoogleSignInButton />
+*/}
 
             <p className="text-center text-sm text-slate-500 dark:text-gray-400 transition-colors">
               Don’t have an account?{" "}

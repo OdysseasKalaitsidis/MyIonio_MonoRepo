@@ -403,6 +403,7 @@ export default function SignUpPage() {
                     {loading ? "Creating account..." : "Create Account"}
                 </Button>
 
+{/* Temporarily disabled
                 <div className="relative mt-4">
                     <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-slate-200 dark:border-white/10" />
@@ -417,6 +418,7 @@ export default function SignUpPage() {
                 <div className="mt-4">
                     <GoogleSignInButton onSuccess={handleGoogleSuccess} />
                 </div>
+*/}
 
                 <p className="text-center text-xs text-slate-500 dark:text-gray-400 mt-4 transition-colors">
                     By pressing sign up you accept the{" "}
