@@ -1,131 +1,60 @@
-# 🎓 MyIonio Monorepo
+# MyIonio Monorepo
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB?logo=react)](Frontend/)
-[![.NET](https://img.shields.io/badge/Backend-.NET%208-512BD4?logo=dotnet)](Backend/)
-[![Docker](https://img.shields.io/badge/DevOps-Docker-2496ED?logo=docker)](docker-compose.yml)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)]( .github/workflows/deploy.yml)
+MyIonio is a full-stack, containerized academic platform engineered for the Ionian University student body. It supports a growing user base of over 4,000 university students by providing real-time schedule management, academic profiling, and intelligent course recommendations. Engineered from the ground up as a solo-developed platform, the project features a fully custom-built end-to-end architecture encompassing the frontend React application, the .NET Core backend API, the relational database structure, and the automated CI/CD deployment pipelines.
 
-**MyIonio** is a premium, full-stack academic platform designed for the Ionian University community. It streamlines the student experience through intelligent course recommendations, real-time schedule management, and a high-performance, containerized infrastructure.
+## Technology Stack
 
----
+The platform is built upon a modern, high-performance tech stack designed for scalability, type safety, and maintainability:
 
-## 📸 Preview
+*   **Frontend**: React 19, TypeScript, Tailwind CSS, Redux Toolkit
+*   **Backend**: ASP.NET Core 8.0 Web API, Entity Framework Core
+*   **Database**: PostgreSQL
+*   **DevOps & Infrastructure**: Docker, Docker Compose, GitHub Actions, Nginx Reverse Proxy
+*   **Security**: JWT-based Authentication with HTTP-only Cookies
 
-<p align="center">
-  <img src="docs/screenshots/dashboard.png" width="45%" alt="Dashboard" />
-  <img src="docs/screenshots/schedule.png" width="45%" alt="Schedule View" />
-</p>
-<p align="center">
-  <img src="docs/screenshots/semester_selection.png" width="45%" alt="Semester Selection" />
-  <img src="docs/screenshots/course_selection.png" width="45%" alt="Course Selection" />
-</p>
+## Architecture Overview
 
----
+The system utilizes a decoupled monorepo architecture. The frontend SPA communicates with a robust .NET Web API, which manages data persistence via Entity Framework Core connected to a PostgreSQL database. The entire stack is fully containerized using Docker, ensuring absolute environment parity between local development and the production server.
 
-## ✨ Key Features
+```mermaid
+graph TD
+    Client[Client / Browser] -->|HTTPS| Nginx[Nginx Reverse Proxy]
+    Nginx -->|Serves Static Assets| Frontend[React 19 SPA]
+    Nginx -->|Routes API Traffic| Backend[.NET 8 Web API]
+    Backend -->|Entity Framework| DB[(PostgreSQL)]
+    
+    subgraph CI/CD Infrastructure
+        GitHub[GitHub Actions] -.->|Automated Build & Deploy| VPS[Production Ubuntu VPS]
+        VPS -.-> Nginx
+    end
+```
 
-- 🚀 **Intelligent Dashboard**: At-a-glance view of today's classes, campus services, and restaurant status.
-- 👨‍🏫 **Professor Directory**: Comprehensive searchable database of faculty members with full weekly academic programs.
-- 🎯 **Academic Preferences**: Smart semester and course selection flow tailored to individual academic paths.
-- 📅 **Interactive Schedules**: Weekly schedules with real-time filtering by day, department, and semester.
-- 🌓 **Adaptive UI**: Premium dark/light mode support with smooth Framer Motion transitions.
+## Developer Ownership
 
----
+As a solo-engineered platform, core technical responsibilities and implementations span the entire development lifecycle:
 
-## 🛠️ Technology Stack
+*   **System Architecture**: Design of the decoupled architecture, RESTful API contracts, and normalized PostgreSQL database schemas.
+*   **Frontend Engineering**: Development of a responsive, accessible, and highly interactive user interface focused on performance and modern UX principles.
+*   **Backend Development**: Implementation of secure APIs, centralized exception handling, business logic, and efficient data access patterns in C#/.NET 8.
+*   **DevOps & CI/CD**: Containerization of all services using Docker and engineering of automated GitHub Actions workflows for seamless, zero-downtime deployments to a Linux VPS.
+*   **Quality & Security**: Enforcement of code quality standards, implementation of rate limiting, and security hardening against common web vulnerabilities.
 
-### **Frontend**
-- **React 19** with **TypeScript** for type-safe UI development.
-- **Tailwind CSS** for a modern, utility-first responsive design.
-- **Framer Motion** for premium micro-interactions and transitions.
-- **Redux Toolkit** for robust state management.
-- **Lucide React** for consistent, high-quality iconography.
+## Getting Started
 
-### **Backend**
-- **ASP.NET Core 8.0 Web API** following RESTful principles.
-- **Entity Framework Core** with **PostgreSQL** for reliable data persistence.
-- **JWT Authentication** with Secure Cookie storage for protected resource access.
-- **Centralized Exception Handling** for consistent API error responses.
-- **Rate Limiting** to protect against brute-force and resource exhaustion.
+### Local Environment Setup
 
-### **DevOps & Infrastructure**
-- **Docker & Docker Compose** for absolute environment parity across Dev and Production.
-- **GitHub Actions** for a fully automated CI/CD pipeline targeting an Ubuntu VPS.
-- **Nginx Reverse Proxy** for efficient traffic routing and SSL termination.
+To run the application locally, ensure you have Docker and Docker Compose installed.
 
----
+1.  Clone the repository.
+2.  Copy `.env.example` to `.env` and configure the necessary environment variables.
+3.  Launch the containerized environment:
 
-## 🏗️ Architecture & Best Practices
+```bash
+docker compose up -d --build
+```
 
-This project is built as a **Monorepo**, ensuring seamless integration between the frontend and backend. 
-- **Decoupled Design**: Heavy use of **DTOs** (Data Transfer Objects) and **Interfaces** to ensure the frontend and backend can evolve independently.
-- **Security First**: Implements JWT-based auth, CORS policies, and secure headers.
-- **DevOps Parity**: The same `docker-compose` configuration is used for both local development and production deployment, minimizing "it works on my machine" issues.
+The frontend application will be accessible at `http://localhost:8080`, and the backend API documentation (Swagger) can be found at `http://localhost:5000/swagger`.
 
----
+## License
 
-## 🚀 Getting Started
-
-### Prerequisites
-- [Docker & Docker Compose](https://docs.docker.com/get-docker/)
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js 20.x](https://nodejs.org/)
-
-### Local Setup
-1. Clone the repository.
-2. Setup environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-3. Spin up the entire stack:
-   ```bash
-   docker compose up -d --build
-   ```
-4. Access the apps:
-   - **Frontend**: `http://localhost:8080`
-   - **Backend API**: `http://localhost:5000/swagger`
-
----
-
-## 🚢 Deployment
-
-Automated deployment is handled via **GitHub Actions**. Upon every push to the `master` branch:
-1. The codebase is checked out.
-2. A secure SSH connection is established with the VPS.
-3. The latest code is pulled and containers are rebuilt seamlessly.
-4. Old images are pruned to maintain server health.
-
----
-
-## 📝 License
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
----
-
-## 🗺️ Roadmap & Open Issues
-
-We are looking for contributors to help with the following features:
-- [ ] **Internationalization (i18n)**: Full English translation for the entire UI.
-- [ ] **Mobile App**: A React Native version using the same backend.
-- [ ] **Push Notifications**: Real-time alerts for schedule changes or announcements.
-- [ ] **Unit Tests**: Increasing test coverage for critical frontend business logic.
-- [ ] **Accessibility (A11y)**: Ensuring the platform is fully accessible to all students.
-
-Check our [Issues](https://github.com/YOUR_USERNAME/MyIonio_MonoRepo/issues) for "Good First Issues"!
-
----
-
-## 🤝 Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
----
-
-<p align="center">
-  Developed with ❤️ for the Ionian University Community.
-</p>
-
+This project is distributed under the MIT License.
