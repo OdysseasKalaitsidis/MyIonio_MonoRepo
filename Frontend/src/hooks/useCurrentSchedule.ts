@@ -59,18 +59,22 @@ export function useCurrentSchedule() {
         console.log("📅 Fetching Schedule with:", { department: deptParam, semester: finalSemester, isAuthenticated });
 
         let data: import("../features/schedule/api").ScheduleResponseDto[];
-        if (isAuthenticated) {
-             console.log("[DEBUG] Fetching authenticated schedule (Using public API + client-side filter)");
-        }
-
-        const publicSchedule = await getSchedule({ department: deptParam, semester: finalSemester });
         
-        if (selectedCourses && selectedCourses.length > 0) {
-             // Only show selected courses
-             data = publicSchedule.filter(c => selectedCourses.includes(c.course_name));
+        if (isAuthenticated) {
+             console.log("[DEBUG] Fetching authenticated schedule (Using specialized user API)");
+             data = await import("../features/schedule/api").then(api => 
+                api.getUserSchedule({ department: deptParam, semester: finalSemester })
+             );
         } else {
-             // Show all courses if no selection made
-             data = publicSchedule;
+             const publicSchedule = await getSchedule({ department: deptParam, semester: finalSemester });
+             
+             if (selectedCourses && selectedCourses.length > 0) {
+                  // Only show selected courses for guest users
+                  data = publicSchedule.filter(c => selectedCourses.includes(c.course_name));
+             } else {
+                  // Show all courses if no selection made (Guest mode)
+                  data = publicSchedule;
+             }
         }
         
         if (isMounted) {

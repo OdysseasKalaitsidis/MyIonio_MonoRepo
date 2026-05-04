@@ -1,5 +1,5 @@
-export const DEPARTMENT_MAP: Record<string, string> = {
     "Informatics": "Τμήμα Πληροφορικής",
+    "Department of Informatics": "Τμήμα Πληροφορικής",
     "Tourism": "Τμήμα Τουρισμού",
     "Translation": "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας"
 };
