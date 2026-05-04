@@ -51,7 +51,7 @@ export default function SignInPage() {
             <p className="text-slate-500 dark:text-gray-400 uppercase tracking-[0.3em] text-xs font-semibold">
               Welcome to
             </p>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white transition-colors">Ionio Portal</h1>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-white transition-colors">My Ionio</h1>
             <p className="text-slate-500 dark:text-gray-400 transition-colors">
               Sign in to continue your personalized academic journey.
             </p>

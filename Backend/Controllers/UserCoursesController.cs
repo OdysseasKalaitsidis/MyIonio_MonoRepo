@@ -78,7 +78,7 @@ namespace MyIonio.Controllers
         }
 
         [HttpGet("schedule")]
-        public async Task<IActionResult> GetMySchedule([FromQuery] string semester)
+        public async Task<IActionResult> GetMySchedule([FromQuery] string semester, [FromQuery] string? department = null)
         {
             if (string.IsNullOrEmpty(semester)) return BadRequest("Semester is required");
 
@@ -103,66 +103,48 @@ namespace MyIonio.Controllers
 
             string targetSemester = semesterMap.ContainsKey(semester) ? semesterMap[semester] : semester;
 
-            // 1. Get user's enrolled courses for this semester
-            Console.WriteLine($"[DEBUG] GetMySchedule: Request for Semester='{semester}'");
+            // 1. Determine Department and Get user's enrolled courses for this semester
+            Console.WriteLine($"[DEBUG] GetMySchedule: Request for Semester='{semester}', Department='{department}'");
             
-            if (user.EnrolledCourses == null)
-            {
-                Console.WriteLine("[DEBUG] User.EnrolledCourses is NULL");
-                return Ok(new List<CourseEntry>());
-            }
-            
-            Console.WriteLine($"[DEBUG] User.EnrolledCourses Keys: {string.Join(", ", user.EnrolledCourses.Keys)}");
-            Console.WriteLine($"[DEBUG] TargetSemester (Mapped): '{targetSemester}'");
-
-            // Fuzzy match for semester key
-            var enrolledCourseNames = new List<string>();
-            bool foundKey = false;
-            
-            // 1. Try exact match
-            if (user.EnrolledCourses.ContainsKey(targetSemester))
-            {
-                enrolledCourseNames = user.EnrolledCourses[targetSemester];
-                foundKey = true;
-                Console.WriteLine($"[DEBUG] Found exact match for '{targetSemester}'");
-            }
-            else
-            {
-                // 2. Try to find a key that matches if we ignore accents and quotes
-                var normalizedTarget = targetSemester.Trim().Replace("'", "").Replace("\u0384", "").Replace("΄", "").ToLower();
-                
-                foreach (var key in user.EnrolledCourses.Keys)
-                {
-                    var normalizedKey = key.Trim().Replace("'", "").Replace("\u0384", "").Replace("΄", "").ToLower();
-                    if (normalizedKey == normalizedTarget)
-                    {
-                        enrolledCourseNames = user.EnrolledCourses[key];
-                        foundKey = true;
-                        Console.WriteLine($"[DEBUG] Found fuzzy match: '{key}' for requested '{targetSemester}'");
-                        break;
-                    }
-                }
-            }
-
-            if (!foundKey)
-            {
-                Console.WriteLine($"[DEBUG] User has no courses for semester '{targetSemester}' (checked fuzzy matches too)");
-                // Return empty list if no courses enrolled for this specific semester
-                return Ok(new List<CourseEntry>()); 
-            }
-            Console.WriteLine($"[DEBUG] Found {enrolledCourseNames.Count} enrolled course Names.");
-
-            // 2. Get the master schedule for the user's department and semester
-            var normalizedTargetSemester = targetSemester.Trim().Replace("'", "");
-            
-            if (string.IsNullOrEmpty(user.Department))
+            var targetDepartment = !string.IsNullOrEmpty(department) ? department : user.Department;
+            if (string.IsNullOrEmpty(targetDepartment))
             {
                 Console.WriteLine("[DEBUG] User department is empty.");
                 return BadRequest("User department is not set.");
             }
 
-            Console.WriteLine($"[DEBUG] User Department: '{user.Department}'");
+            var enrolledCourseNames = new List<string>();
+            
+            if (user.EnrolledCourses != null)
+            {
+                // Try exact match
+                if (user.EnrolledCourses.ContainsKey(targetSemester))
+                {
+                    enrolledCourseNames = user.EnrolledCourses[targetSemester];
+                    Console.WriteLine($"[DEBUG] Found exact match for '{targetSemester}'");
+                }
+                else
+                {
+                    // Try fuzzy match
+                    var normalizedTarget = targetSemester.Trim().Replace("'", "").Replace("\u0384", "").Replace("΄", "").ToLower();
+                    foreach (var key in user.EnrolledCourses.Keys)
+                    {
+                        var normalizedKey = key.Trim().Replace("'", "").Replace("\u0384", "").Replace("΄", "").ToLower();
+                        if (normalizedKey == normalizedTarget)
+                        {
+                            enrolledCourseNames = user.EnrolledCourses[key];
+                            Console.WriteLine($"[DEBUG] Found fuzzy match: '{key}' for requested '{targetSemester}'");
+                            break;
+                        }
+                    }
+                }
+            }
 
+            Console.WriteLine($"[DEBUG] Found {enrolledCourseNames.Count} enrolled course Names.");
+
+            // 2. Get the master schedule for the user's department and semester
+            var normalizedTargetSemester = targetSemester.Trim().Replace("'", "");
+            
             // Map Greek department names to the English names stored by the AI parser
             var departmentMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -170,17 +152,14 @@ namespace MyIonio.Controllers
                 { "Τμήμα Τουρισμού", "Department of Tourism" },
                 { "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας", "Department of Foreign Languages, Translation and Interpreting" },
             };
-            var normalizedDepartment = departmentMap.ContainsKey(user.Department.Trim())
-                ? departmentMap[user.Department.Trim()]
-                : user.Department.Trim();
-
-             Console.WriteLine($"[DEBUG] Normalized Dept: '{normalizedDepartment}', Normalized Sem: '{normalizedTargetSemester}'");
+            var normalizedDepartment = departmentMap.ContainsKey(targetDepartment.Trim())
+                ? departmentMap[targetDepartment.Trim()]
+                : targetDepartment.Trim();
 
              var allSchedulesMetadata = await _context.schedules
                  .AsNoTracking()
                  .Select(s => new { s.id, s.department, s.semester })
                  .ToListAsync();
-             Console.WriteLine($"[DEBUG] Total Schedules in DB: {allSchedulesMetadata.Count}");
 
             var scheduleId = allSchedulesMetadata.FirstOrDefault(s => 
                 (s.department?.Trim() == normalizedDepartment) &&
@@ -190,32 +169,24 @@ namespace MyIonio.Controllers
             if (scheduleId == null)
             {
                  Console.WriteLine("[DEBUG] No matching schedule entity found in DB.");
-                 // Log available schedules for debugging
-                 foreach(var s in allSchedulesMetadata)
-                 {
-                     Console.WriteLine($"[DEBUG] DB Schedule: Dept='{s.department}', Sem='{s.semester}'");
-                 }
                  return NotFound("Schedule not found for your department and semester."); 
             }
 
             var scheduleEntity = await _context.schedules
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.id == scheduleId.Value);
-
-            if (scheduleEntity.courses == null)
-            {
-                Console.WriteLine("[DEBUG] Schedule entity found, but courses list is null.");
-            }
             
-            // 3. Filter courses - Match by Name
-            var filteredCourses = scheduleEntity.courses?
-                .Where(c => enrolledCourseNames.Contains(c.CourseName)) 
-                .ToList() ?? new List<CourseEntry>();
+            var courses = scheduleEntity.courses ?? new List<CourseEntry>();
 
-            Console.WriteLine($"[DEBUG] Returning {filteredCourses.Count} courses after filtering.");
+            // 3. Filter courses if the user has enrolled in any
+            if (enrolledCourseNames.Any())
+            {
+                courses = courses.Where(c => enrolledCourseNames.Contains(c.CourseName)).ToList();
+            }
 
-            // Return flattened list of courses
-            return Ok(filteredCourses);
+            Console.WriteLine($"[DEBUG] Returning {courses.Count} courses.");
+
+            return Ok(courses);
         }
     }
 }
