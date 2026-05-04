@@ -152,7 +152,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var app = builder.Build();
 
 // Middleware
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 app.UseMiddleware<MyIonio.Middleware.ExceptionHandlingMiddleware>();
+
+// Use CORS should be as early as possible
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {
@@ -166,8 +174,6 @@ if (app.Environment.IsDevelopment())
 // Rate Limiter
 app.UseRateLimiter();
 
-// Use CORS
-app.UseCors("AllowFrontend");
 
 // app.UseHttpsRedirection(); // Disabled because Nginx handles SSL
 
