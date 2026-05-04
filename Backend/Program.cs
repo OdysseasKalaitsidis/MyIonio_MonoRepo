@@ -16,6 +16,12 @@ using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FORCE PORT 80 for Docker compatibility
+builder.WebHost.UseUrls("http://0.0.0.0:80", "http://0.0.0.0:8080");
+
+Console.WriteLine("MyIonio Backend Starting...");
+Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+
 // Configuration
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
