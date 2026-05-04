@@ -99,10 +99,33 @@ Automated deployment is handled via **GitHub Actions**. Upon every push to the `
 ---
 
 ## 📝 License
+
 Distributed under the **MIT License**. See `LICENSE` for more information.
+
+---
+
+## 🗺️ Roadmap & Open Issues
+
+We are looking for contributors to help with the following features:
+- [ ] **Internationalization (i18n)**: Full English translation for the entire UI.
+- [ ] **Mobile App**: A React Native version using the same backend.
+- [ ] **Push Notifications**: Real-time alerts for schedule changes or announcements.
+- [ ] **Unit Tests**: Increasing test coverage for critical frontend business logic.
+- [ ] **Accessibility (A11y)**: Ensuring the platform is fully accessible to all students.
+
+Check our [Issues](https://github.com/YOUR_USERNAME/MyIonio_MonoRepo/issues) for "Good First Issues"!
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ---
 
 <p align="center">
   Developed with ❤️ for the Ionian University Community.
 </p>
+
