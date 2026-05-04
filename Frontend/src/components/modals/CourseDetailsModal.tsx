@@ -110,51 +110,52 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
 
             <div className="flex flex-col md:flex-row h-[500px]">
               {/* Details Side */}
-              <div className="w-full md:w-5/12 p-6 border-r border-slate-100 dark:border-white/5 space-y-6 overflow-y-auto">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Information</h3>
+              <div className="w-full md:w-5/12 p-6 border-r border-slate-100 dark:border-white/5 space-y-6 overflow-y-auto bg-white dark:bg-surface">
+                <div className="space-y-5">
+                  <h3 className="text-base font-bold text-slate-800 dark:text-gray-100 border-b border-slate-100 dark:border-white/10 pb-2">Course Details</h3>
                   
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-gray-300">
-                    <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue">
-                      <Clock size={18} />
+                  <div className="flex items-start gap-4 text-slate-700 dark:text-gray-300">
+                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue shrink-0">
+                      <Clock size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Day & Time</p>
-                      <p className="font-semibold">{course.day}, {course.time_start} - {course.time_end}</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">Day & Time</p>
+                      <p className="font-semibold">{course.day}</p>
+                      <p className="text-sm opacity-80">{course.time_start} - {course.time_end}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-gray-300">
-                    <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue">
-                      <MapPin size={18} />
+                  <div className="flex items-start gap-4 text-slate-700 dark:text-gray-300">
+                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue shrink-0">
+                      <MapPin size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Location</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">Location</p>
                       <p className="font-semibold">{course.room}</p>
                     </div>
                   </div>
 
                   <div 
                     onClick={handleProfessorClick}
-                    className="flex items-center gap-3 text-slate-700 dark:text-gray-300 cursor-pointer group hover:text-ionian-blue transition-colors"
+                    className="flex items-start gap-4 text-slate-700 dark:text-gray-300 cursor-pointer group hover:text-ionian-blue transition-colors"
                   >
-                    <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue group-hover:bg-ionian-blue group-hover:text-white transition-colors">
-                      <User size={18} />
+                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-ionian-blue group-hover:bg-ionian-blue group-hover:text-white transition-colors shrink-0">
+                      <User size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Professor</p>
-                      <p className="font-semibold underline decoration-dotted underline-offset-4">{course.professor}</p>
+                      <p className="text-xs text-slate-500 font-medium mb-0.5">Professor</p>
+                      <p className="font-semibold underline decoration-dotted underline-offset-4 group-hover:text-ionian-blue">{course.professor}</p>
                     </div>
                   </div>
 
                   {summary && (
-                    <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                      <p className="text-xs text-slate-500 mb-2">Overall Rating</p>
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl font-bold">{summary.averageRating}</span>
+                    <div className="pt-5 border-t border-slate-100 dark:border-white/5 mt-6">
+                      <p className="text-xs text-slate-500 font-medium mb-3">Overall Rating</p>
+                      <div className="flex items-center gap-4 bg-slate-50 dark:bg-black/20 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                        <span className="text-4xl font-extrabold text-slate-800 dark:text-white">{summary.averageRating}</span>
                         <div>
-                          <StarRating rating={summary.averageRating} size={16} />
-                          <p className="text-xs text-slate-400">{summary.totalReviews} reviews</p>
+                          <StarRating rating={summary.averageRating} size={18} />
+                          <p className="text-sm text-slate-500 font-medium mt-0.5">{summary.totalReviews} {summary.totalReviews === 1 ? 'student review' : 'student reviews'}</p>
                         </div>
                       </div>
                     </div>
@@ -164,8 +165,8 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
 
               {/* Reviews Side */}
               <div className="flex-1 flex flex-col bg-slate-50/50 dark:bg-black/10 overflow-hidden">
-                <div className="p-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
-                  <h3 className="font-bold flex items-center gap-2">
+                <div className="p-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-white/50 dark:bg-surface/50">
+                  <h3 className="font-bold flex items-center gap-2 text-slate-800 dark:text-gray-100">
                     <MessageSquare size={18} className="text-ionian-blue" />
                     Student Reviews
                   </h3>
@@ -180,50 +181,57 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                     reviews.map((review) => (
                       <div key={review.id} className="bg-white dark:bg-surface p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
                         <div className="flex justify-between items-start mb-2">
-                          <span className="font-bold text-sm">{review.userName}</span>
-                          <span className="text-[10px] text-slate-400">{new Date(review.createdAt).toLocaleDateString()}</span>
+                          <span className="font-bold text-sm text-slate-800 dark:text-gray-200">{review.userName}</span>
+                          <span className="text-[10px] font-medium text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-full">{new Date(review.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <StarRating rating={review.rating} size={12} />
+                        <StarRating rating={review.rating} size={14} />
                         {review.comment && (
-                          <p className="mt-2 text-sm text-slate-600 dark:text-gray-400 italic">"{review.comment}"</p>
+                          <p className="mt-3 text-sm text-slate-600 dark:text-gray-400 italic bg-slate-50 dark:bg-black/20 p-3 rounded-xl border border-slate-100 dark:border-white/5">"{review.comment}"</p>
                         )}
                       </div>
                     ))
                   ) : (
                     <div className="text-center py-12 text-slate-400">
-                      <MessageSquare size={48} className="mx-auto mb-2 opacity-20" />
-                      <p className="text-sm">No reviews yet. Be the first!</p>
+                      <MessageSquare size={48} className="mx-auto mb-3 opacity-20" />
+                      <p className="text-sm font-medium">No reviews yet.</p>
+                      <p className="text-xs mt-1">Be the first to share your experience!</p>
                     </div>
                   )}
                 </div>
 
                 {/* Submission Box */}
-                {isAuthenticated && (
-                  <div className="p-4 bg-white dark:bg-surface border-t border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold text-slate-500">Rate this course</span>
+                {isAuthenticated ? (
+                  <div className="p-4 bg-white dark:bg-surface border-t border-slate-200 dark:border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-slate-700 dark:text-gray-300">Rate this course</span>
                       <StarRating 
                         rating={myRating} 
                         interactive 
                         onRatingChange={setMyRating} 
-                        size={18}
+                        size={22}
                       />
                     </div>
-                    <div className="relative">
-                      <textarea
-                        value={myComment}
-                        onChange={(e) => setMyComment(e.target.value)}
-                        placeholder="Add a comment (optional)..."
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 resize-none h-20"
-                      />
-                      <button
-                        onClick={handleReviewSubmit}
-                        disabled={isSubmitting || myRating === 0}
-                        className="absolute right-2 bottom-2 p-2 rounded-lg bg-ionian-blue text-white disabled:opacity-50 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/20"
-                      >
-                        <Send size={16} />
-                      </button>
-                    </div>
+                    <textarea
+                      value={myComment}
+                      onChange={(e) => setMyComment(e.target.value)}
+                      placeholder="Share your experience (optional)..."
+                      className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 resize-none h-24 transition-all"
+                    />
+                    <button
+                      onClick={handleReviewSubmit}
+                      disabled={isSubmitting || myRating === 0}
+                      className="w-full py-2.5 rounded-xl bg-ionian-blue text-white font-medium disabled:opacity-50 transition-all hover:bg-blue-600 active:scale-[0.98] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                    >
+                      <Send size={16} />
+                      {isSubmitting ? "Submitting..." : "Submit Review"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-5 bg-slate-50 dark:bg-surface border-t border-slate-200 dark:border-white/10 text-center">
+                    <p className="text-sm text-slate-600 dark:text-gray-400 mb-3 font-medium">Want to share your experience?</p>
+                    <button onClick={() => { onClose(); navigate("/login"); }} className="w-full py-2.5 text-sm font-bold text-ionian-blue bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+                      Log in to submit a review
+                    </button>
                   </div>
                 )}
               </div>
