@@ -6,7 +6,7 @@ export interface LoginRequest {
 }
 
 export interface GoogleLoginRequest {
-  IdToken: string;
+  idToken: string;
   semester?: string;
   major?: string;
   minor?: string;
