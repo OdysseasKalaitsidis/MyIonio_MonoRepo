@@ -1,9 +1,6 @@
 services:
   backend:
     image: ghcr.io/odysseaskalaitsidis/myionio-backend:latest
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
     container_name: myionio-backend
     restart: always
     environment:
@@ -26,12 +23,6 @@ services:
 
   frontend:
     image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL:-https://api.myionio.site/api}
-        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     container_name: myionio-frontend
     restart: always
     depends_on:
