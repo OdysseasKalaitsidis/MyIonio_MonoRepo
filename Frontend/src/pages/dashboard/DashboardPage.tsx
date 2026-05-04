@@ -59,6 +59,11 @@ export default function DashboardPage() {
             <ScheduleCard />
             <FuelCard />
             
+            {/* Full Span: Professors Banner */}
+            <div className="col-span-1 lg:col-span-2">
+                <ProfessorsCard />
+            </div>
+            
             {/* Split Row: Pathfinder (3/4) & Results (1/4) */}
             <div className="lg:col-span-2 flex flex-col lg:flex-row gap-6">
                 {/* 3/4 Width Pathfinder */}
@@ -76,14 +81,6 @@ export default function DashboardPage() {
                 <div className="lg:basis-1/4">
                    <div 
                      onClick={() => {
-                         // Always navigate to results/quiz
-                         // If user meant "Quiz Card" -> maybe they want to go to /quiz directly?
-                         // But usually results are different. Let's send to /results for now as per original code structure
-                         // The user said "quiz card unlocked" - typically leads to quiz or results.
-                         // But wait, the Pathfinder card *starts* the quiz (via terms).
-                         // The Results card shows *results*.
-                         // The user said "quiz card". The Pathfinder card is likely the "Quiz Card".
-                         // I unlocked both just in case.
                          navigate("/results");
                      }}
                      className={`
@@ -115,11 +112,10 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Exam, Library & Professors Row */}
-            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Exam & Library Row */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ExamCard />
                 <LibraryCard />
-                <ProfessorsCard />
             </div>
 
             {/* Quick Links Row (Dias, E-Class, Eudoxus) - Approx 70% height/size */}

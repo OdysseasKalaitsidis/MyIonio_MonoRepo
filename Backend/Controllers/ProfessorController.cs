@@ -4,6 +4,7 @@ using MyIonio.Data;
 using MyIonio.DTOs;
 using MyIonio.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace MyIonio.Controllers
 {
@@ -20,12 +21,17 @@ namespace MyIonio.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [OutputCache(Duration = 3600)]
         public async Task<IActionResult> GetProfessors()
         {
-            var allSchedules = await _context.schedules.ToListAsync();
-            var professors = allSchedules
+            var coursesLists = await _context.schedules
+                .AsNoTracking()
                 .Where(s => s.courses != null)
-                .SelectMany(s => s.courses)
+                .Select(s => s.courses)
+                .ToListAsync();
+
+            var professors = coursesLists
+                .SelectMany(c => c)
                 .Select(c => c.Professor?.Trim())
                 .Where(p => !string.IsNullOrEmpty(p))
                 .Distinct()
@@ -37,13 +43,17 @@ namespace MyIonio.Controllers
 
         [HttpGet("all")]
         [AllowAnonymous]
+        [OutputCache(Duration = 3600)]
         public async Task<IActionResult> GetAllProfessorsWithSchedules()
         {
-            var allSchedules = await _context.schedules.ToListAsync();
-            
-            var grouped = allSchedules
+            var coursesLists = await _context.schedules
+                .AsNoTracking()
                 .Where(s => s.courses != null)
-                .SelectMany(s => s.courses)
+                .Select(s => s.courses)
+                .ToListAsync();
+            
+            var grouped = coursesLists
+                .SelectMany(c => c)
                 .Where(c => !string.IsNullOrEmpty(c.Professor))
                 .GroupBy(c => c.Professor.Trim())
                 .Select(g => new ProfessorScheduleDto
@@ -59,6 +69,7 @@ namespace MyIonio.Controllers
 
         [HttpGet("{name}/schedule")]
         [AllowAnonymous]
+        [OutputCache(Duration = 3600, VaryByRouteValueNames = new[] { "name" })]
         public async Task<IActionResult> GetProfessorSchedule(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -68,10 +79,14 @@ namespace MyIonio.Controllers
 
             var decodedName = Uri.UnescapeDataString(name);
 
-            var allSchedules = await _context.schedules.ToListAsync();
-            var courses = allSchedules
+            var coursesLists = await _context.schedules
+                .AsNoTracking()
                 .Where(s => s.courses != null)
-                .SelectMany(s => s.courses)
+                .Select(s => s.courses)
+                .ToListAsync();
+
+            var courses = coursesLists
+                .SelectMany(c => c)
                 .Where(c => string.Equals(c.Professor?.Trim(), decodedName.Trim(), StringComparison.OrdinalIgnoreCase))
                 .ToList();
 

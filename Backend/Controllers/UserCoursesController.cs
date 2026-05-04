@@ -176,24 +176,31 @@ namespace MyIonio.Controllers
 
              Console.WriteLine($"[DEBUG] Normalized Dept: '{normalizedDepartment}', Normalized Sem: '{normalizedTargetSemester}'");
 
-             var allSchedules = await _context.schedules.ToListAsync();
-             Console.WriteLine($"[DEBUG] Total Schedules in DB: {allSchedules.Count}");
+             var allSchedulesMetadata = await _context.schedules
+                 .AsNoTracking()
+                 .Select(s => new { s.id, s.department, s.semester })
+                 .ToListAsync();
+             Console.WriteLine($"[DEBUG] Total Schedules in DB: {allSchedulesMetadata.Count}");
 
-            var scheduleEntity = allSchedules.FirstOrDefault(s => 
+            var scheduleId = allSchedulesMetadata.FirstOrDefault(s => 
                 (s.department?.Trim() == normalizedDepartment) &&
                 (s.semester?.Trim().Replace("'", "") == normalizedTargetSemester || s.semester == targetSemester)
-            );
+            )?.id;
 
-            if (scheduleEntity == null)
+            if (scheduleId == null)
             {
                  Console.WriteLine("[DEBUG] No matching schedule entity found in DB.");
                  // Log available schedules for debugging
-                 foreach(var s in allSchedules)
+                 foreach(var s in allSchedulesMetadata)
                  {
                      Console.WriteLine($"[DEBUG] DB Schedule: Dept='{s.department}', Sem='{s.semester}'");
                  }
                  return NotFound("Schedule not found for your department and semester."); 
             }
+
+            var scheduleEntity = await _context.schedules
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.id == scheduleId.Value);
 
             if (scheduleEntity.courses == null)
             {

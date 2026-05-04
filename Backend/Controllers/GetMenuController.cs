@@ -1,6 +1,7 @@
 using MyIonio.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace MyIonio.Controllers
 {
@@ -16,6 +17,7 @@ namespace MyIonio.Controllers
         }
         
         [HttpGet("menu")]
+        [OutputCache(Duration = 3600)]
         public async Task<IActionResult> getMenu()
         {
             try
@@ -31,6 +33,7 @@ namespace MyIonio.Controllers
 
                 // async query
                 var menus = await _context.weekly_menus
+                    .AsNoTracking()
                     .Where(x => x.week_start <= endUtc && x.week_end >= startUtc)
                     .ToListAsync();
 

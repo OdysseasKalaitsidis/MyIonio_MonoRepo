@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyIonio.Helpers;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace MyIonio.Controllers
 {
@@ -20,6 +21,7 @@ namespace MyIonio.Controllers
 
         [HttpGet("schedule")]
         [AllowAnonymous]
+        [OutputCache(Duration = 600, VaryByQueryKeys = new[] { "department", "semester" })]
         public async Task<IActionResult> GetSchedule([FromQuery] ScheduleRequestDto dto)
         {
             if (string.IsNullOrEmpty(dto.Department) || string.IsNullOrEmpty(dto.Semester))
@@ -67,6 +69,7 @@ namespace MyIonio.Controllers
 
             // Retrieve only the metadata from the database to avoid loading all courses into memory
             var allSchedulesMetadata = await _context.schedules
+                .AsNoTracking()
                 .Select(s => new { s.id, s.department, s.semester })
                 .ToListAsync();
 
@@ -87,7 +90,7 @@ namespace MyIonio.Controllers
             })?.id;
 
             var scheduleEntity = scheduleId.HasValue 
-                ? await _context.schedules.FindAsync(scheduleId.Value) 
+                ? await _context.schedules.AsNoTracking().FirstOrDefaultAsync(s => s.id == scheduleId.Value) 
                 : null;
             
             if (scheduleEntity == null || scheduleEntity.courses == null)

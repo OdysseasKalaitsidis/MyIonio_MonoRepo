@@ -3,6 +3,7 @@ using MyIonio.DTOs;
 using MyIonio.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -20,9 +21,11 @@ namespace MyIonio.Controllers
         }
 
         [HttpGet("{courseName}")]
+        [OutputCache(Duration = 300, VaryByRouteValueNames = new[] { "courseName" })]
         public async Task<IActionResult> GetReviews(string courseName)
         {
             var reviews = await _context.CourseReviews
+                .AsNoTracking()
                 .Include(r => r.User)
                 .Where(r => r.CourseName == courseName)
                 .OrderByDescending(r => r.CreatedAt)
@@ -41,9 +44,11 @@ namespace MyIonio.Controllers
         }
 
         [HttpGet("{courseName}/summary")]
+        [OutputCache(Duration = 600, VaryByRouteValueNames = new[] { "courseName" })]
         public async Task<IActionResult> GetSummary(string courseName)
         {
             var reviews = await _context.CourseReviews
+                .AsNoTracking()
                 .Where(r => r.CourseName == courseName)
                 .ToListAsync();
 
