@@ -1,3 +1,4 @@
+export const DEPARTMENT_MAP: Record<string, string> = {
     "Informatics": "Τμήμα Πληροφορικής",
     "Department of Informatics": "Τμήμα Πληροφορικής",
     "Tourism": "Τμήμα Τουρισμού",
@@ -17,4 +18,3 @@ export const SEMESTER_TO_NUMBER: Record<string, number> = {
 };
 
 export const DEPARTMENTS_LIST = Object.keys(DEPARTMENT_MAP);
-
