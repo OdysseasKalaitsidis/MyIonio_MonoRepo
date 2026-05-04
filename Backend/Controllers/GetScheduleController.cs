@@ -62,9 +62,15 @@ namespace MyIonio.Controllers
                 normalizedDepartment = "ΤΜΗΜΑ ΠΛΗΡΟΦΟΡΙΚΗΣ";
             }
 
-            var allSchedules = await _context.schedules.ToListAsync();
+            // Prevent Nginx 502 Bad Gateway on large JSON responses by disabling proxy buffering
+            Response.Headers["X-Accel-Buffering"] = "no";
 
-            var scheduleEntity = allSchedules.FirstOrDefault(s =>
+            // Retrieve only the metadata from the database to avoid loading all courses into memory
+            var allSchedulesMetadata = await _context.schedules
+                .Select(s => new { s.id, s.department, s.semester })
+                .ToListAsync();
+
+            var scheduleId = allSchedulesMetadata.FirstOrDefault(s =>
             {
                 var sDept = s.department?.Trim();
                 var sSem = NormalizeSemester(s.semester);
@@ -78,7 +84,11 @@ namespace MyIonio.Controllers
                 bool semMatch = string.Equals(sSem, normalizedTargetSemester, StringComparison.OrdinalIgnoreCase);
 
                 return deptMatch && semMatch;
-            });
+            })?.id;
+
+            var scheduleEntity = scheduleId.HasValue 
+                ? await _context.schedules.FindAsync(scheduleId.Value) 
+                : null;
             
             if (scheduleEntity == null || scheduleEntity.courses == null)
             {

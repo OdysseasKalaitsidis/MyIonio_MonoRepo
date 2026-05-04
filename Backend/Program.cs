@@ -188,6 +188,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Add a simple health check endpoint for Docker
+app.MapGet("/api/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+
 // Auto-Migrate Database on Startup with Retries
 for (int i = 0; i < 5; i++)
 {
