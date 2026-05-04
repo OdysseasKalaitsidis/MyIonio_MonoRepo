@@ -37,6 +37,17 @@ services:
     ports:
       - "8080:80"
 
+  ai-service:
+    image: ghcr.io/odysseaskalaitsidis/myionio-ai:latest
+    container_name: myionio-ai
+    restart: always
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    networks:
+      - myionio-network
+    ports:
+      - "8000:8000"
+
 networks:
   myionio-network:
     driver: bridge

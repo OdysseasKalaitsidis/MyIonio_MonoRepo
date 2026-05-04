@@ -4,8 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import type { AxiosError } from "axios";
 import type { AppDispatch } from "../app/store";
 import { Button } from "../components/Button";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { registerUser, registerUserWithTest } from "../features/auth/api";
-import { signIn } from "../features/auth/authSlice";
+import { signIn, registerWithGoogle } from "../features/auth/authSlice";
 import type { RegisterRequest } from "../features/auth/models";
 import { TermsModal } from "../components/TermsModal";
 import { PrivacyPolicyModal } from "../components/PrivacyPolicyModal";
@@ -43,6 +44,12 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
+  const [googleIdToken, setGoogleIdToken] = useState<string | null>(null);
+
+  const handleGoogleSuccess = (idToken: string) => {
+      setGoogleIdToken(idToken);
+      setShowQuickPicker(true);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -54,8 +61,26 @@ export default function SignUpPage() {
     !!quizRecommendation && (quizUserAnswers?.length ?? 0) > 0;
   const handleQuickPickerComplete = async (dept: string, sem: string) => {
     setShowQuickPicker(false);
-    // Google registration is temporarily disabled
-    console.log("Quick picker completed with:", dept, sem);
+    
+    if (googleIdToken) {
+        try {
+            setLoading(true);
+            const result = await dispatch(registerWithGoogle({
+                idToken: googleIdToken,
+                department: dept,
+                semester: sem,
+                recommendation: quizRecommendation
+            }));
+
+            if (registerWithGoogle.fulfilled.match(result)) {
+                navigate("/dashboard");
+            }
+        } catch (err) {
+            setError("Google registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -353,7 +378,6 @@ export default function SignUpPage() {
                     {loading ? "Creating account..." : "Create Account"}
                 </Button>
 
-{/* Temporarily disabled
                 <div className="relative mt-4">
                     <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t border-slate-200 dark:border-white/10" />
@@ -368,7 +392,6 @@ export default function SignUpPage() {
                 <div className="mt-4">
                     <GoogleSignInButton onSuccess={handleGoogleSuccess} />
                 </div>
-*/}
 
                 <p className="text-center text-xs text-slate-500 dark:text-gray-400 mt-4 transition-colors">
                     By pressing sign up you accept the{" "}

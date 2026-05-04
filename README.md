@@ -30,16 +30,29 @@ The system utilizes a decoupled monorepo architecture. The frontend SPA communic
 
 ```mermaid
 graph TD
-    Client[Client / Browser] -->|HTTPS| Nginx[Nginx Reverse Proxy]
-    Nginx -->|Serves Static Assets| Frontend[React 19 SPA]
-    Nginx -->|Routes API Traffic| Backend[.NET 8 Web API]
-    Backend -->|Entity Framework| DB[(PostgreSQL)]
-    Nginx -->|Unstructured Data Parsing| AI[Python FastAPI Service]
-    
-    subgraph CI/CD Infrastructure
-        GitHub[GitHub Actions] -.->|Automated Build & Deploy| VPS[Production Ubuntu VPS]
-        VPS -.-> Nginx
+    subgraph "User Layer"
+        User[Client Browser]
     end
+
+    subgraph "Cloud Infrastructure (VPS)"
+        Nginx[Nginx Reverse Proxy]
+        Frontend[React 19 SPA]
+        Backend[.NET 8 Web API]
+        AI[Python AI Service]
+        DB[(PostgreSQL DB)]
+    end
+
+    User -->|HTTPS| Nginx
+    Nginx --> Frontend
+    Nginx --> Backend
+    Nginx --> AI
+    Backend --> DB
+
+    subgraph "CI/CD"
+        GHA[GitHub Actions]
+    end
+
+    GHA -.->|Deploy| Nginx
 ```
 
 ## Developer Ownership
