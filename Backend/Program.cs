@@ -211,7 +211,11 @@ for (int i = 0; i < 5; i++)
     catch (Exception ex)
     {
         Console.WriteLine($"Database migration attempt {i + 1} failed: {ex.Message}");
-        if (i == 4) throw;
+        if (i == 4) 
+        {
+            Console.WriteLine("FATAL: Could not connect to database after 5 attempts. Continuing startup to prevent crash loop, but API calls will fail.");
+            break;
+        }
         System.Threading.Thread.Sleep(5000);
     }
 }
