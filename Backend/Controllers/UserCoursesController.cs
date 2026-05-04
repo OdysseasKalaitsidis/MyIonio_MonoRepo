@@ -142,19 +142,31 @@ namespace MyIonio.Controllers
 
             Console.WriteLine($"[DEBUG] Found {enrolledCourseNames.Count} enrolled course Names.");
 
-            // 2. Get the master schedule for the user's department and semester
-            var normalizedTargetSemester = targetSemester.Trim().Replace("'", "");
-            
-            // Map Greek department names to the English names stored by the AI parser
-            var departmentMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            // Normalize function for Greek numeral signs and accents
+            string NormalizeSemester(string val)
             {
-                { "Τμήμα Πληροφορικής", "Department of Informatics" },
-                { "Τμήμα Τουρισμού", "Department of Tourism" },
-                { "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας", "Department of Foreign Languages, Translation and Interpreting" },
-            };
-            var normalizedDepartment = departmentMap.ContainsKey(targetDepartment.Trim())
-                ? departmentMap[targetDepartment.Trim()]
-                : targetDepartment.Trim();
+                if (string.IsNullOrEmpty(val)) return "";
+                return val.Trim()
+                    .Replace("'", "")
+                    .Replace("\"", "")
+                    .Replace("\u0384", "") // GREEK TONOS
+                    .Replace("\u0374", "") // GREEK NUMERAL SIGN
+                    .Replace("\u00b4", "") // ACUTE ACCENT
+                    .Replace("\u0345", "") // COMBINING GREEK YPOGEGRAMMENI
+                    .Replace("΄", "")
+                    .Replace("`", "");
+            }
+
+            var normalizedTargetSemester = NormalizeSemester(targetSemester);
+            var cleanTargetDepartment = targetDepartment.Trim();
+
+            // Map English department to Greek if needed
+            var normalizedDepartment = cleanTargetDepartment;
+            if (string.Equals(normalizedDepartment, "Department of Informatics", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(normalizedDepartment, "Τμήμα Πληροφορικής", StringComparison.OrdinalIgnoreCase)) 
+            {
+                normalizedDepartment = "ΤΜΗΜΑ ΠΛΗΡΟΦΟΡΙΚΗΣ";
+            }
 
              var allSchedulesMetadata = await _context.schedules
                  .AsNoTracking()
@@ -162,9 +174,20 @@ namespace MyIonio.Controllers
                  .ToListAsync();
 
             var scheduleId = allSchedulesMetadata.FirstOrDefault(s => 
-                (s.department?.Trim() == normalizedDepartment) &&
-                (s.semester?.Trim().Replace("'", "") == normalizedTargetSemester || s.semester == targetSemester)
-            )?.id;
+            {
+                var sDept = s.department?.Trim();
+                var sSem = NormalizeSemester(s.semester);
+                
+                // Check department (match either original or mapped Greek name)
+                bool deptMatch = string.Equals(sDept, cleanTargetDepartment, StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
+                                 (cleanTargetDepartment.Contains("Informatics", StringComparison.OrdinalIgnoreCase) && sDept?.Contains("ΠΛΗΡΟΦΟΡΙΚΗΣ", StringComparison.OrdinalIgnoreCase) == true);
+
+                // Check semester
+                bool semMatch = string.Equals(sSem, normalizedTargetSemester, StringComparison.OrdinalIgnoreCase);
+
+                return deptMatch && semMatch;
+            })?.id;
 
             if (scheduleId == null)
             {
