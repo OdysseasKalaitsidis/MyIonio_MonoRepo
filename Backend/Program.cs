@@ -162,18 +162,18 @@ builder.Services.AddOutputCache();
 
 var app = builder.Build();
 
-app.UseOutputCache();
-
 // Middleware
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
 });
 
-app.UseMiddleware<MyIonio.Middleware.ExceptionHandlingMiddleware>();
-
-// Use CORS should be as early as possible
+// Use CORS MUST be before OutputCache and Authentication
 app.UseCors("AllowFrontend");
+
+app.UseOutputCache();
+
+app.UseMiddleware<MyIonio.Middleware.ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

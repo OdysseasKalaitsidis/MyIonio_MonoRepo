@@ -106,6 +106,7 @@ const authSlice = createSlice({
         state.token = payload.token;
         state.isAuthenticated = !!payload.token && !!payload.userId;
         state.error = null;
+        state.loading = false;
 
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
@@ -134,6 +135,7 @@ const authSlice = createSlice({
         state.token = payload.token;
         state.isAuthenticated = !!payload.token && !!payload.userId;
         state.error = null;
+        state.loading = false;
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
       })
@@ -159,6 +161,7 @@ const authSlice = createSlice({
         state.token = payload.token;
         state.isAuthenticated = !!payload.token && !!payload.userId;
         state.error = null;
+        state.loading = false;
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
       })
