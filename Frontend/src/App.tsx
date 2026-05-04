@@ -25,25 +25,34 @@ import { Toaster } from "react-hot-toast";
 function AuthSync() {
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { department, semester, major, minor } = useAppSelector((state) => state.preferences);
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Sync preferences from User Profile to Redux State
-      if (user.semester || user.department) {
+      // Only sync if values differ to avoid infinite loops
+      const needsPrefSync = 
+        (user.department && user.department !== department) || 
+        (user.semester && String(user.semester) !== String(semester));
+
+      if (needsPrefSync) {
         dispatch(setPreferences({
           department: user.department || "",
           semester: user.semester || ""
         }));
       }
       
-      if (user.major || user.minor) {
+      const needsCourseSync = 
+        (user.major && user.major !== major) || 
+        (user.minor && user.minor !== minor);
+
+      if (needsCourseSync) {
         dispatch(updateCoursePreferences({
           major: user.major || undefined,
           minor: user.minor || undefined
         }));
       }
     }
-  }, [dispatch, isAuthenticated, user]);
+  }, [dispatch, isAuthenticated, user, department, semester, major, minor]);
 
   return null;
 }

@@ -16,7 +16,7 @@ interface CourseDetailsModalProps {
 
 export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsModalProps) {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [reviews, setReviews] = useState<CourseReview[]>([]);
   const [summary, setSummary] = useState<CourseRatingSummary | null>(null);
   const [myRating, setMyRating] = useState(0);
