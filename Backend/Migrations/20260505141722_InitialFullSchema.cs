@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -10,11 +10,45 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MyIonio.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialFullSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "class_schedules",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    department = table.Column<string>(type: "text", nullable: false),
+                    semester = table.Column<string>(type: "text", nullable: false),
+                    academic_year = table.Column<string>(type: "text", nullable: false),
+                    period = table.Column<string>(type: "text", nullable: false),
+                    courses = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_class_schedules", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "exam_schedules",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    department = table.Column<string>(type: "text", nullable: false),
+                    semester = table.Column<string>(type: "text", nullable: false),
+                    period = table.Column<string>(type: "text", nullable: false),
+                    exams = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_exam_schedules", x => x.id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Majors",
                 columns: table => new
@@ -84,17 +118,37 @@ namespace MyIonio.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Department = table.Column<string>(type: "text", nullable: true),
+                    Major = table.Column<string>(type: "text", nullable: true),
+                    Minor = table.Column<string>(type: "text", nullable: true),
                     Semester = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    HasCompletedTest = table.Column<bool>(type: "boolean", nullable: false)
+                    HasCompletedTest = table.Column<bool>(type: "boolean", nullable: false),
+                    EnrolledCourses = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "weekly_menus",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    week_start = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    week_end = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    days = table.Column<string>(type: "jsonb", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_weekly_menus", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -169,6 +223,52 @@ namespace MyIonio.Migrations
                         name: "FK_QuestionForToolbox_Toolboxes_ToolboxId",
                         column: x => x.ToolboxId,
                         principalTable: "Toolboxes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CourseReviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CourseName = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CourseReviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CourseReviews_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "notes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CourseName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    FileName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    FileContent = table.Column<byte[]>(type: "bytea", nullable: false),
+                    UploadedBy = table.Column<Guid>(type: "uuid", nullable: false),
+                    Summary = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_notes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_notes_Users_UploadedBy",
+                        column: x => x.UploadedBy,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -268,12 +368,22 @@ namespace MyIonio.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Majors",
+                columns: new[] { "Id", "Description", "Mweight", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Bioinformatics and Computational Intelligence", 48, "ΒΥΝ" },
+                    { 2, "Cyber-security and Communication Networks", 35, "ΚΔΕ" },
+                    { 3, "Digital Transformation and Data Analytics", 66, "ΨΜΑΔ" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Questions",
                 columns: new[] { "QuestionId", "Index", "MajorPoints", "RankingOptions", "SliderMax", "SliderMin", "Text", "ToolboxPoints", "Type", "Weight" },
                 values: new object[,]
                 {
                     { 1, 1, "{}", null, null, null, "?? Saturday night, laptop open. What are you actually doing?", "{}", "single", 1 },
-                    { 2, 2, "{}", null, null, null, "?? Honest moment - where do you actually land?", "{}", "slider", 1 },
+                    { 2, 2, "{}", null, null, null, "?? When coding, I'm more 1=Theory/Elegant, 10=Practical", "{}", "slider", 1 },
                     { 3, 3, "{}", null, null, null, "?? You're doom-scrolling at 2am. What makes you stop and actually click?", "{}", "multiple", 1 },
                     { 4, 4, "{}", null, null, null, "?? Real talk - which thought do you have most often?", "{}", "single", 1 },
                     { 5, 5, "{}", null, null, null, "?? Your laptop can only run ONE thing for a month. Choose wisely:", "{}", "single", 1 },
@@ -285,6 +395,18 @@ namespace MyIonio.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Toolboxes",
+                columns: new[] { "Id", "Description", "Name", "TWeight" },
+                values: new object[,]
+                {
+                    { 1, "Theoretical Computer Science", "TB1", 7 },
+                    { 2, "Interaction", "TB2", 23 },
+                    { 3, "Pedagogy", "TB3", 7 },
+                    { 4, "Software", "TB4", 14 },
+                    { 5, "Humanistic Dimensions of Computer Science", "TB5", 24 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Answers",
                 columns: new[] { "Id", "MajorPoints", "QuestionId", "RankingOptions", "SliderMax", "SliderMin", "Text", "ToolboxPoints", "Weight" },
                 values: new object[,]
@@ -293,8 +415,7 @@ namespace MyIonio.Migrations
                     { 2, "{\"\\u039A\\u0394\\u0395\":1,\"\\u03A8\\u039C\\u0391\\u0394\":4}", 1, null, null, null, "Building that app idea that's been living rent-free in your head", "{\"TB4\":3}", 1 },
                     { 3, "{\"\\u039A\\u0394\\u0395\":4}", 1, null, null, null, "Setting up a home security lab or trying to crack your own system", "{\"TB5\":2}", 1 },
                     { 4, "{\"\\u0392\\u03A5\\u039D\":2,\"\\u03A8\\u039C\\u0391\\u0394\":3}", 1, null, null, null, "Making something visual/interactive that makes people go \"wait, how'd you do that?\"", "{\"TB2\":3}", 1 },
-                    { 5, "{}", 2, null, 10, 1, "Slider 1: When coding, I'm more (1=Theory/Elegant, 10=Practical/Ships)", "{}", 1 },
-                    { 6, "{}", 2, null, 10, 1, "Slider 2: I get energy from (1=Solving puzzles alone, 10=Showing people cool stuff)", "{}", 1 },
+                    { 5, "{}", 2, null, 10, 1, " When coding, I'm more 1=Theory/Elegant, 10=Practical/Ships", "{}", 1 },
                     { 7, "{\"\\u0392\\u03A5\\u039D\":3}", 3, null, null, null, "?? \"AI just discovered something doctors missed for 50 years\"", "{}", 1 },
                     { 8, "{\"\\u03A8\\u039C\\u0391\\u0394\":3}", 3, null, null, null, "?? \"College dropout's app just hit $10M revenue\"", "{}", 1 },
                     { 9, "{\"\\u039A\\u0394\\u0395\":3}", 3, null, null, null, "?? \"How hackers stole $600M in cryptocurrency\"", "{\"TB5\":3}", 1 },
@@ -333,6 +454,54 @@ namespace MyIonio.Migrations
                     { 42, "{\"\\u03A8\\u039C\\u0391\\u0394\":3,\"\\u0392\\u03A5\\u039D\":1}", 10, null, null, null, "\"How do I explain this to users without causing panic?\"", "{\"TB2\":4}", 1 }
                 });
 
+            migrationBuilder.InsertData(
+                table: "AnswersQuestion",
+                columns: new[] { "AnswerId", "QuestionId" },
+                values: new object[,]
+                {
+                    { 1, 1 },
+                    { 2, 1 },
+                    { 3, 1 },
+                    { 4, 1 },
+                    { 5, 2 },
+                    { 7, 3 },
+                    { 8, 3 },
+                    { 9, 3 },
+                    { 10, 3 },
+                    { 11, 3 },
+                    { 12, 3 },
+                    { 13, 4 },
+                    { 14, 4 },
+                    { 15, 4 },
+                    { 16, 4 },
+                    { 17, 5 },
+                    { 18, 5 },
+                    { 19, 5 },
+                    { 20, 5 },
+                    { 21, 6 },
+                    { 22, 6 },
+                    { 23, 6 },
+                    { 24, 6 },
+                    { 25, 7 },
+                    { 26, 7 },
+                    { 27, 7 },
+                    { 28, 7 },
+                    { 29, 8 },
+                    { 30, 8 },
+                    { 31, 8 },
+                    { 32, 8 },
+                    { 33, 8 },
+                    { 34, 8 },
+                    { 35, 9 },
+                    { 36, 9 },
+                    { 37, 9 },
+                    { 38, 9 },
+                    { 39, 10 },
+                    { 40, 10 },
+                    { 41, 10 },
+                    { 42, 10 }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Answers_QuestionId",
                 table: "Answers",
@@ -342,6 +511,16 @@ namespace MyIonio.Migrations
                 name: "IX_AnswersQuestion_AnswerId",
                 table: "AnswersQuestion",
                 column: "AnswerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CourseReviews_UserId",
+                table: "CourseReviews",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notes_UploadedBy",
+                table: "notes",
+                column: "UploadedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_QuestionForMajor_MajorId",
@@ -376,6 +555,18 @@ namespace MyIonio.Migrations
                 name: "AnswersQuestion");
 
             migrationBuilder.DropTable(
+                name: "class_schedules");
+
+            migrationBuilder.DropTable(
+                name: "CourseReviews");
+
+            migrationBuilder.DropTable(
+                name: "exam_schedules");
+
+            migrationBuilder.DropTable(
+                name: "notes");
+
+            migrationBuilder.DropTable(
                 name: "QuestionForMajor");
 
             migrationBuilder.DropTable(
@@ -389,6 +580,9 @@ namespace MyIonio.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserAnswers");
+
+            migrationBuilder.DropTable(
+                name: "weekly_menus");
 
             migrationBuilder.DropTable(
                 name: "Answers");
@@ -410,4 +604,3 @@ namespace MyIonio.Migrations
         }
     }
 }
-

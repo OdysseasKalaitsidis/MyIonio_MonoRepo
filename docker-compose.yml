@@ -1,4 +1,22 @@
 services:
+  db:
+    image: postgres:15
+    container_name: myionio-db
+    restart: always
+    environment:
+      - POSTGRES_DB=myionio
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password123
+    ports:
+      - "5432:5432"
+    networks:
+      - myionio-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d myionio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ─── Kafka (KRaft mode — no Zookeeper required) ──────────────────────────
   kafka:
     image: apache/kafka:latest
@@ -27,11 +45,15 @@ services:
       - myionio-network
 
   backend:
-    image: ghcr.io/odysseaskalaitsidis/myionio-backend:latest
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     container_name: myionio-backend
     restart: always
     depends_on:
       kafka:
+        condition: service_healthy
+      db:
         condition: service_healthy
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION}
@@ -53,7 +75,9 @@ services:
       - "5000:80"
 
   frontend:
-    image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: myionio-frontend
     restart: always
     depends_on:
@@ -69,7 +93,9 @@ services:
       - "8080:80"
 
   ai-service:
-    image: ghcr.io/odysseaskalaitsidis/myionio-ai:latest
+    build:
+      context: ./MyIonio-AI
+      dockerfile: Dockerfile
     container_name: myionio-ai
     restart: always
     depends_on:
