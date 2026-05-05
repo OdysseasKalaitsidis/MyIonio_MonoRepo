@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface PreferencesState {
   department: string | null;
+  departmentId: number | null;
   semester: string | number | null;
   major: string | null;
   minor: string | null;
@@ -15,6 +16,7 @@ interface PreferencesState {
 
 const initialState: PreferencesState = {
   department: localStorage.getItem('hud_department'),
+  departmentId: localStorage.getItem('hud_departmentId') ? Number(localStorage.getItem('hud_departmentId')) : null,
   semester: localStorage.getItem('hud_semester') || null,
   major: localStorage.getItem('hud_major'),
   minor: localStorage.getItem('hud_minor'),
@@ -22,7 +24,7 @@ const initialState: PreferencesState = {
   hiddenCourses: JSON.parse(localStorage.getItem('hud_hiddenCourses') || '[]'),
   selectedCourses: JSON.parse(localStorage.getItem('hud_selectedCourses') || '[]'),
   onboardingCompleted: localStorage.getItem('hud_onboardingCompleted') === 'true',
-  isFirstVisit: !localStorage.getItem('hud_department'), // If no dept set, assume first visit or guest
+  isFirstVisit: !localStorage.getItem('hud_department'), 
   isOnboardingOpen: false,
 };
 
@@ -30,12 +32,14 @@ export const preferencesSlice = createSlice({
   name: 'preferences',
   initialState,
   reducers: {
-    setPreferences: (state, action: PayloadAction<{ department: string; semester: string | number }>) => {
+    setPreferences: (state, action: PayloadAction<{ department: string; departmentId: number; semester: string | number }>) => {
       state.department = action.payload.department;
+      state.departmentId = action.payload.departmentId;
       state.semester = action.payload.semester;
       state.isFirstVisit = false;
       
       localStorage.setItem('hud_department', action.payload.department);
+      localStorage.setItem('hud_departmentId', String(action.payload.departmentId));
       localStorage.setItem('hud_semester', String(action.payload.semester));
     },
     updateCoursePreferences: (state, action: PayloadAction<{ major?: string; minor?: string; toolbox?: string[] }>) => {

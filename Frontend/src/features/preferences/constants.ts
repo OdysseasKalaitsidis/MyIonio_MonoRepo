@@ -1,8 +1,21 @@
+export const DEPARTMENTS = [
+    { id: 1, name: "Informatics", greekName: "Τμήμα Πληροφορικής" },
+    { id: 2, name: "Tourism", greekName: "Τμήμα Τουρισμού" },
+    { id: 3, name: "Translation", greekName: "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας" }
+];
+
 export const DEPARTMENT_MAP: Record<string, string> = {
     "Informatics": "Τμήμα Πληροφορικής",
     "Department of Informatics": "Τμήμα Πληροφορικής",
     "Tourism": "Τμήμα Τουρισμού",
     "Translation": "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας"
+};
+
+export const DEPARTMENT_ID_MAP: Record<string, number> = {
+    "Informatics": 1,
+    "Department of Informatics": 1,
+    "Tourism": 2,
+    "Translation": 3
 };
 
 // Map Greek letters to semester numbers for API compatibility

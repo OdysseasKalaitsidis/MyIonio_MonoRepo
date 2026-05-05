@@ -12,6 +12,7 @@ import { MajorsMap } from "../../data/UniData";
 import { Check, X, Loader2, ChevronRight, ChevronLeft, Layers } from "lucide-react";
 import { saveUserCourses } from "../../features/courses/api";
 import { getSchedule, type ScheduleResponseDto } from "../../features/schedule/api";
+import { DEPARTMENT_ID_MAP } from "../../features/preferences/constants";
 import clsx from "clsx";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -282,7 +283,8 @@ export function SchedulePickerModal({ isOpen, onClose }: Props) {
             finalCourseNames = Array.from(new Set([...majorNames, ...minorNames, ...electives]));
         }
 
-        dispatch(setPreferences({ department: "Department of Informatics", semester: sem }));
+        const deptId = DEPARTMENT_ID_MAP["Department of Informatics"] || 1;
+        dispatch(setPreferences({ department: "Department of Informatics", departmentId: deptId, semester: sem }));
         if (major || minor) {
             dispatch(updateCoursePreferences({ major: major || undefined, minor: minor || undefined }));
         }
