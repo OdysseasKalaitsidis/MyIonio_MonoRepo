@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { X, ChevronRight, Check } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreferences, updateCoursePreferences } from '../../features/preferences/preferencesSlice';
-import { DEPARTMENTS_LIST } from '../../features/preferences/constants';
+import { DEPARTMENTS_LIST, DEPARTMENT_ID_MAP } from '../../features/preferences/constants';
 import type { RootState } from '../../app/store';
 
 interface QuickPickerModalProps {
@@ -77,7 +77,8 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
   };
 
   const finishSelection = (dept: string, sem: string, major?: string, minor?: string, toolbox?: string[]) => {
-      dispatch(setPreferences({ department: dept, semester: sem }));
+      const deptId = DEPARTMENT_ID_MAP[dept] || 1; 
+      dispatch(setPreferences({ department: dept, departmentId: deptId, semester: sem }));
       if (major || minor || toolbox) {
           dispatch(updateCoursePreferences({ major, minor, toolbox }));
       }

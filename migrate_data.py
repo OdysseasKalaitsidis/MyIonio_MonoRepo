@@ -131,25 +131,46 @@ def migrate():
                 tgt_cur.execute(f'TRUNCATE TABLE "{actual_tgt_table}" CASCADE')
                 
                 # Prepare insert
-                col_names = ', '.join([f'"{c}"' for c in common_cols])
-                placeholders = ', '.join(['%s'] * len(common_cols))
+                target_columns = list(common_cols)
+                has_dept_id = "DepartmentId" in tgt_cols and "DepartmentId" not in src_cols
+                if has_dept_id:
+                    target_columns.append("DepartmentId")
+
+                col_names = ', '.join([f'"{c}"' for c in target_columns])
+                placeholders = ', '.join(['%s'] * len(target_columns))
                 insert_query = f'INSERT INTO "{actual_tgt_table}" ({col_names}) VALUES ({placeholders})'
                 
-                # Process rows to ensure JSON conversion
+                # Dept ID Mapping logic
+                DEPT_ID_MAP = {
+                    "Τμήμα Πληροφορικής": 1, "Department of Informatics": 1, "INFORMATICS": 1, "Informatics": 1,
+                    "Τμήμα Τουρισμού": 2, "Tourism": 2,
+                    "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας": 3, "Translation": 3
+                }
+
+                # Process rows to ensure JSON conversion and inject DepartmentId
                 processed_rows = []
                 for row in rows:
+                    row_dict = dict(zip(common_cols, row))
                     processed_row = []
-                    for val in row:
-                        # If value is a list (Postgres array), convert to JSON string for local JSONB
+                    
+                    # Add standard columns
+                    for c in common_cols:
+                        val = row_dict[c]
                         if isinstance(val, list):
                             processed_row.append(json.dumps(val))
                         else:
                             processed_row.append(val)
+                    
+                    # Inject DepartmentId if needed
+                    if has_dept_id:
+                        dept_name = row_dict.get("department") or row_dict.get("Department") or ""
+                        processed_row.append(DEPT_ID_MAP.get(dept_name, 1))
+
                     processed_rows.append(tuple(processed_row))
 
                 # Batch insert
                 tgt_cur.executemany(insert_query, processed_rows)
-                print(f"  ✅ Successfully migrated {len(rows)} rows using columns: {', '.join(common_cols)}")
+                print(f"  ✅ Successfully migrated {len(rows)} rows into {actual_tgt_table}")
                 
             except Exception as table_err:
                 print(f"  ⚠️ Error on table {table}: {table_err}")
