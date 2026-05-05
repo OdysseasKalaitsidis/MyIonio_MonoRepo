@@ -3,16 +3,7 @@ using System.Text.Json;
 
 namespace MyIonio.Kafka
 {
-    /// <summary>
-    /// Singleton Kafka producer service.
-    ///
-    /// Design decisions worth knowing for interviews:
-    /// - Singleton lifetime: IProducer is thread-safe and expensive to create; one instance per app is correct.
-    /// - Fire-and-forget resilience: Kafka errors are logged but never surfaced to the caller.
-    ///   This keeps review submission reliable even if the Kafka broker is temporarily unavailable.
-    /// - JSON serialisation: Confluent.Kafka uses a StringSerializer here; the payload is
-    ///   pre-serialised so any consumer (regardless of language) can deserialise it easily.
-    /// </summary>
+  
     public class KafkaProducerService : IKafkaProducerService, IDisposable
     {
         private readonly IProducer<Null, string> _producer;

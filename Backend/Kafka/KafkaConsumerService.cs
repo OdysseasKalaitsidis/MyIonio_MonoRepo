@@ -5,18 +5,7 @@ using System.Text.Json;
 
 namespace MyIonio.Kafka
 {
-    /// <summary>
-    /// Background service (IHostedService) that consumes the "note-summarized" Kafka topic.
-    ///
-    /// Interview talking points:
-    /// - IHostedService lifecycle: StartAsync is called on app startup, StopAsync on shutdown.
-    ///   The consumer loop runs in a background Task so it never blocks the main thread.
-    /// - IServiceScopeFactory: DbContext is a Scoped service but this is a Singleton.
-    ///   We create a new scope per message to get a fresh DbContext — standard .NET pattern.
-    /// - Manual offset commit (enable.auto.commit = false): we commit ONLY after the DB write
-    ///   succeeds. If the backend crashes mid-update, Kafka replays the message on restart.
-    ///   This gives us at-least-once delivery semantics.
-    /// </summary>
+    
     public class KafkaConsumerService : IHostedService, IDisposable
     {
         private readonly IServiceScopeFactory _scopeFactory;
