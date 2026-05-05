@@ -13,6 +13,7 @@ import { QuickPickerModal } from "./QuickPickerModal";
 import { ExamCard } from "./ExamCard";
 import { LibraryCard } from "./LibraryCard";
 import { ProfessorsCard } from "./ProfessorsCard";
+import { NotesCard } from "./NotesCard";
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -58,6 +59,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
             <ScheduleCard />
             <FuelCard />
+            <NotesCard />
             
             {/* Full Span: Professors Banner */}
             <div className="col-span-1 lg:col-span-2">

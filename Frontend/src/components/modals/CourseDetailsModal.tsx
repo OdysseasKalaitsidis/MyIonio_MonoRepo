@@ -221,9 +221,6 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
 
                 <div className="p-8 pb-4">
                   <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-white/5">
-                      <MessageSquare size={20} className="text-ionian-blue" />
-                    </div>
                     Feedbacks
                   </h3>
                 </div>

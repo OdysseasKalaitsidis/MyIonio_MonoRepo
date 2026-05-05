@@ -1,8 +1,60 @@
 services:
+  db:
+    image: postgres:15
+    container_name: myionio-db
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - myionio-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Kafka (KRaft mode — no Zookeeper required) ──────────────────────────
+  kafka:
+    image: apache/kafka:latest
+    container_name: myionio-kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft settings — Kafka manages its own metadata without Zookeeper
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - myionio-network
+
   backend:
-    image: ghcr.io/odysseaskalaitsidis/myionio-backend:latest
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     container_name: myionio-backend
     restart: always
+    depends_on:
+      kafka:
+        condition: service_started
+      db:
+        condition: service_started
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION}
       - Jwt__Key=${JWT_KEY}
@@ -11,6 +63,7 @@ services:
       - Google__ClientId=${GOOGLE_CLIENT_ID}
       - Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
       - AllowedOrigins=${FRONTEND_URL:-https://myionio.site}
+      - Kafka__BootstrapServers=kafka:9092
     networks:
       - myionio-network
     healthcheck:
@@ -22,7 +75,9 @@ services:
       - "5000:80"
 
   frontend:
-    image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: myionio-frontend
     restart: always
     depends_on:
@@ -37,7 +92,24 @@ services:
     ports:
       - "8080:80"
 
+  ai-service:
+    build:
+      context: ./MyIonio-AI
+      dockerfile: Dockerfile
+    container_name: myionio-ai
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_started
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - BACKEND_URL=http://backend:5000
+    networks:
+      - myionio-network
+    ports:
+      - "8000:8000"
+
 networks:
   myionio-network:
     driver: bridge
-

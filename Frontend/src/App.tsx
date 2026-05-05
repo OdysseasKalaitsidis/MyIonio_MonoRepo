@@ -15,6 +15,7 @@ import MenuPage from "./pages/MenuPage";
 import LibraryPage from "./pages/LibraryPage";
 import ExaminationPage from "./pages/ExaminationPage";
 import ProfessorsPage from "./pages/ProfessorsPage";
+import NotesPage from "./pages/NotesPage";
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
@@ -99,6 +100,7 @@ export function App() {
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/exams" element={<ExaminationPage />} />
           <Route path="/professors" element={<ProfessorsPage />} />
+          <Route path="/notes" element={<NotesPage />} />
         </Routes>
         </Router>
       </ConsentProvider>

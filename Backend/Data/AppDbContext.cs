@@ -26,6 +26,7 @@ namespace MyIonio.Data
         public DbSet<weekly_menus> weekly_menus { get; set; }
         public DbSet<ExaminationSchedule> ExaminationSchedules { get; set; }
         public DbSet<CourseReview> CourseReviews { get; set; }
+        public DbSet<Note> Notes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -176,8 +177,19 @@ namespace MyIonio.Data
                     v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, examJsonOptions) ?? new Dictionary<string, List<string>>()
                 );
 
-        // Seed data (make sure you implement this extension method)
-        modelBuilder.Seed();
+            // Configure Note
+            modelBuilder.Entity<Note>()
+                .ToTable("notes")
+                .Property(n => n.FileContent)
+                .HasColumnType("bytea");
+
+            modelBuilder.Entity<Note>()
+                .HasOne(n => n.Uploader)
+                .WithMany()
+                .HasForeignKey(n => n.UploadedBy);
+
+            // Seed data
+            modelBuilder.Seed();
         }
     }
 }

@@ -8,3 +8,4 @@ openai
 supabase
 pydantic
 pypdf
+confluent-kafka

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signIn } from "../features/auth/authSlice";
 import type { RootState, AppDispatch } from "../app/store";
 import { Button } from "../components/Button";
-// import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { PageLayout } from "../components/layout/PageLayout";
 
@@ -118,7 +118,6 @@ export default function SignInPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 
-{/* Temporarily disabled
             <div className="flex items-center gap-4 my-2">
               <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
               <span className="text-xs uppercase text-slate-500 dark:text-gray-400 font-medium">
@@ -128,7 +127,6 @@ export default function SignInPage() {
             </div>
 
             <GoogleSignInButton />
-*/}
 
             <p className="text-center text-sm text-slate-500 dark:text-gray-400 transition-colors">
               Don’t have an account?{" "}

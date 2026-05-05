@@ -1,5 +1,6 @@
 using MyIonio;
 using MyIonio.Auth.Services;
+using MyIonio.Kafka;
 using MyIonio.Services;
 using MyIonio.Data;
 using MyIonio.Interfaces;
@@ -151,6 +152,16 @@ builder.Services.AddScoped<IExaminationScheduleService, ExaminationScheduleServi
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
+// Application Services
+builder.Services.AddScoped<INotesService, NotesService>();
+
+// Kafka Producer — Singleton because IProducer<> is thread-safe and expensive to create
+builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+
+
+// Kafka Services
+builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+builder.Services.AddHostedService<KafkaConsumerService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

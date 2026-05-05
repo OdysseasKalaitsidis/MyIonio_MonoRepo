@@ -107,9 +107,37 @@ jobs:
             VITE_API_URL=https://api.myionio.site/api
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
+  build-ai:
+    name: Build & Push AI Service
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set Image Name
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=$OWNER/myionio-ai" >> $GITHUB_ENV
+        shell: bash
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push AI
+        uses: docker/build-push-action@v5
+        with:
+          context: ./MyIonio-AI
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
   deploy:
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: [build-backend, build-frontend, build-ai]
     steps:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -120,8 +148,22 @@ jobs:
           command_timeout: 10m
           script: |
             cd ${{ secrets.SERVER_PATH }}
+            
+            # Update source code
             sudo git fetch origin master
             sudo git reset --hard origin/master
+            
+            # Inject Secrets into .env
+            echo "DB_CONNECTION='${{ secrets.DB_CONNECTION }}'" > .env
+            echo "JWT_KEY='${{ secrets.JWT_KEY }}'" >> .env
+            echo "JWT_ISSUER='${{ secrets.JWT_ISSUER }}'" >> .env
+            echo "JWT_AUDIENCE='${{ secrets.JWT_AUDIENCE }}'" >> .env
+            echo "GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'" >> .env
+            echo "GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'" >> .env
+            echo "GEMINI_API_KEY='${{ secrets.GEMINI_API_KEY }}'" >> .env
+            echo "FRONTEND_URL='https://myionio.site'" >> .env
+            
+            # Login and Pull
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker compose pull
             sudo docker compose down

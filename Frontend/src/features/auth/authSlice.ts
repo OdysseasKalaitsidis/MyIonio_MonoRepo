@@ -52,7 +52,7 @@ export const loginWithGoogle = createAsyncThunk<
     const message =
       axiosError.response?.data?.message ??
       axiosError.message ??
-      "Google login failed"; // Corrected the missing default string
+      "Google login failed";
     return rejectWithValue(message);
   }
 });

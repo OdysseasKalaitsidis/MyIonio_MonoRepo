@@ -41,6 +41,11 @@ namespace MyIonio
 
             if (string.IsNullOrEmpty(_jwtSettings.Key))
                 throw new InvalidOperationException("JWT key is missing in configuration!");
+                
+            if (string.IsNullOrEmpty(_config["Google:ClientId"]))
+            {
+                Console.WriteLine("WARNING: Google:ClientId is missing. Google Authentication will not work.");
+            }
         }
 
 
@@ -217,9 +222,15 @@ namespace MyIonio
 
         public async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string idToken)
         {
+            var clientId = _config["Google:ClientId"];
+            if (string.IsNullOrEmpty(clientId))
+            {
+                throw new InvalidOperationException("Google Client ID is not configured on the server.");
+            }
+
             var settings = new GoogleJsonWebSignature.ValidationSettings()
             {
-                Audience = new List<string>() { _config["Google:ClientId"] }
+                Audience = new List<string>() { clientId }
             };
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
             return payload;
@@ -249,13 +260,15 @@ namespace MyIonio
                     FirstName = payload.GivenName,
                     LastName = payload.FamilyName,
                     CreatedAt = DateTime.UtcNow,
-                    PasswordHash = Guid.NewGuid().ToString(), // Random hash for Google users
+                    // Use a special prefix for Google users to avoid accidental password login
+                    PasswordHash = "GOOGLE_USER_" + Guid.NewGuid().ToString("N"), 
                     
                     // Apply preferences if provided
                     Semester = loginDto.Semester,
                     Department = loginDto.Department,
                     Major = loginDto.Major,
-                    Minor = loginDto.Minor
+                    Minor = loginDto.Minor,
+                    HasCompletedTest = false
                 };
 
                 // Initialize EnrolledCourses with course names
@@ -268,6 +281,7 @@ namespace MyIonio
                 }
 
                 _context.Users.Add(user);
+                Console.WriteLine($"Created new Google user: {user.Email}");
             }
             else
             {
@@ -291,6 +305,7 @@ namespace MyIonio
                         user.EnrolledCourses.Add(loginDto.Semester, enrolledCourses);
                     }
                 }
+                Console.WriteLine($"Logged in existing user via Google: {user.Email}");
             }
             
             // Save changes (covers both insert and update)
@@ -369,13 +384,13 @@ namespace MyIonio
         // Mark if they have completed the test based on whether data was sent
         HasCompletedTest = requestDto.Recommendation != null,
         
-        // Since it's a Google user, we can set a random impossible password 
-        // or leave it null if your DB allows it.
-        PasswordHash = Guid.NewGuid().ToString() 
+        // Since it's a Google user, we set a non-valid password hash
+        PasswordHash = "GOOGLE_USER_" + Guid.NewGuid().ToString("N")
     };
 
     _context.Users.Add(user);
     await _context.SaveChangesAsync();
+    Console.WriteLine($"Registered new Google user with test data: {user.Email}");
 
     // 4. Conditionally Save Test Results (Recommendation)
     if (requestDto.Recommendation != null)

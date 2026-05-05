@@ -1,5 +1,7 @@
 using MyIonio.Data;
 using MyIonio.DTOs;
+using MyIonio.Kafka;
+using MyIonio.Kafka.Events;
 using MyIonio.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +16,12 @@ namespace MyIonio.Controllers
     public class CourseReviewController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IKafkaProducerService _kafkaProducer;
 
-        public CourseReviewController(AppDbContext context)
+        public CourseReviewController(AppDbContext context, IKafkaProducerService kafkaProducer)
         {
             _context = context;
+            _kafkaProducer = kafkaProducer;
         }
 
         [HttpGet("{courseName}")]
@@ -104,6 +108,23 @@ namespace MyIonio.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Publish a Kafka event so the AI service can process the review asynchronously.
+            // This is fire-and-forget: Kafka failures are logged but never fail the HTTP response.
+            var reviewId = existingReview?.Id ?? _context.CourseReviews
+                .Local
+                .FirstOrDefault(r => r.CourseName == dto.CourseName && r.UserId == userId)?.Id
+                ?? Guid.Empty;
+
+            _ = _kafkaProducer.ProduceAsync("course-review-submitted", new CourseReviewSubmittedEvent(
+                ReviewId: reviewId,
+                CourseName: dto.CourseName,
+                Rating: dto.Rating,
+                Comment: dto.Comment,
+                UserId: userId,
+                SubmittedAt: DateTime.UtcNow
+            ));
+
             return Ok(new { message = "Review submitted successfully." });
         }
     }
