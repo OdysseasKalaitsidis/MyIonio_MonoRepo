@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: myionio
+spec:
+  replicas: 2 # Demonstrating high availability with 2 pods
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/odysseaskalaitsidis/myionio-backend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Production"
+        - name: Kafka__BootstrapServers
+          value: "kafka-service:9092"
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: myionio-secrets
+              key: db-connection
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: myionio
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP # Internal service discovery

@@ -28,6 +28,9 @@ The platform is built upon a modern, high-performance tech stack designed for sc
 
 The system utilizes a decoupled monorepo architecture. The frontend SPA communicates with a robust .NET Web API, which manages data persistence via Entity Framework Core connected to a PostgreSQL database. The entire stack is fully containerized using Docker, ensuring absolute environment parity between local development and the production server.
 
+> [!TIP]
+> For a deep dive into our enterprise DevOps flow, including Kubernetes orchestration, Kafka event-driven messaging, and CI/CD pipelines, see our **[Detailed Architecture Documentation](docs/architecture.md)**.
+
 ```mermaid
 graph TD
     subgraph "User Layer"
