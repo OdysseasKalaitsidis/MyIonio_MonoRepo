@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../app/store";
 import { getExaminationSchedule, type ExamItem } from "../features/schedule/api";
-import { DEPARTMENT_MAP } from "../features/preferences/constants";
+
 
 export function useExaminationSchedule() {
   const { department, semester, departmentId } = useSelector((state: RootState) => state.preferences);

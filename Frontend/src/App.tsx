@@ -36,8 +36,17 @@ function AuthSync() {
         (user.semester && String(user.semester) !== String(semester));
 
       if (needsPrefSync) {
+        // Map department name to ID
+        const DEPARTMENT_ID_MAP: Record<string, number> = {
+            "Informatics": 1, "Department of Informatics": 1, "Τμήμα Πληροφορικής": 1,
+            "Tourism": 2, "Τμήμα Τουρισμού": 2,
+            "Translation": 3, "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας": 3
+        };
+        const deptId = DEPARTMENT_ID_MAP[user.department || ""] || 1;
+
         dispatch(setPreferences({
           department: user.department || "",
+          departmentId: deptId,
           semester: user.semester || ""
         }));
       }
