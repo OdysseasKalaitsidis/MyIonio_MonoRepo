@@ -168,6 +168,15 @@ namespace MyIonio.Data
                     v => JsonSerializer.Deserialize<List<CourseEntry>>(v, examJsonOptions) ?? new List<CourseEntry>()
                 );
         
+            // Configure User.EnrolledCourses as jsonb
+            modelBuilder.Entity<User>()
+                .Property(u => u.EnrolledCourses)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v ?? new Dictionary<string, List<string>>(), examJsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, examJsonOptions) ?? new Dictionary<string, List<string>>()
+                );
+
             // Configure Note
             modelBuilder.Entity<Note>()
                 .ToTable("notes")
