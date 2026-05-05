@@ -70,6 +70,7 @@ export interface ExamItem {
 export interface ExaminationSchedule {
   id: number;
   department: string;
+  departmentId: number;
   semester: string | number;
   exams: ExamItem[];
 }
