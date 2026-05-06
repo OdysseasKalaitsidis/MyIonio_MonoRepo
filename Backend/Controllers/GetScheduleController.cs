@@ -67,26 +67,33 @@ namespace MyIonio.Controllers
             // Prevent Nginx 502 Bad Gateway on large JSON responses by disabling proxy buffering
             Response.Headers["X-Accel-Buffering"] = "no";
 
-            // Retrieve only the metadata from the database to avoid loading all courses into memory
+            // Retrieve metadata from the database
             var allSchedulesMetadata = await _context.schedules
                 .AsNoTracking()
-                .Select(s => new { s.id, s.department, s.semester })
+                .Select(s => new { s.id, s.department, s.DepartmentId, s.semester })
                 .ToListAsync();
 
             var scheduleId = allSchedulesMetadata.FirstOrDefault(s =>
             {
-                var sDept = s.department?.Trim();
-                var sSem = NormalizeSemester(s.semester);
-                
-                // Check department (match either original or mapped Greek name)
-                bool deptMatch = string.Equals(sDept, dto.Department?.Trim(), StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
-                                 (dto.Department?.Contains("Informatics", StringComparison.OrdinalIgnoreCase) == true && sDept?.Contains("ΠΛΗΡΟΦΟΡΙΚΗΣ", StringComparison.OrdinalIgnoreCase) == true);
+                // Check DepartmentId first (Modern way)
+                if (dto.DepartmentId.HasValue)
+                {
+                    if (s.DepartmentId != dto.DepartmentId.Value) return false;
+                }
+                else
+                {
+                    // Fallback to string matching (Legacy way)
+                    var sDept = s.department?.Trim();
+                    bool deptMatch = string.Equals(sDept, dto.Department?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                                     string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
+                                     (dto.Department?.Contains("Informatics", StringComparison.OrdinalIgnoreCase) == true && sDept?.Contains("ΠΛΗΡΟΦΟΡΙΚΗΣ", StringComparison.OrdinalIgnoreCase) == true);
+                    
+                    if (!deptMatch) return false;
+                }
 
                 // Check semester
-                bool semMatch = string.Equals(sSem, normalizedTargetSemester, StringComparison.OrdinalIgnoreCase);
-
-                return deptMatch && semMatch;
+                var sSem = NormalizeSemester(s.semester);
+                return string.Equals(sSem, normalizedTargetSemester, StringComparison.OrdinalIgnoreCase);
             })?.id;
 
             var scheduleEntity = scheduleId.HasValue 

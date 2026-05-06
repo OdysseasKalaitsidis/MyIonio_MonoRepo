@@ -17,7 +17,7 @@ const DAY_MAP: Record<number, string> = {
 
 export function useCurrentSchedule() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { department, semester, selectedCourses } = useSelector((state: RootState) => state.preferences);
+  const { department, departmentId, semester, selectedCourses } = useSelector((state: RootState) => state.preferences);
   const [courses, setCourses] = useState<CourseEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,33 +46,25 @@ export function useCurrentSchedule() {
           "8": "Η",
         };
 
-        // Ensure we map string or number input to the Greek letter
         const semKey = String(semester);
         const semParam = semesterMap[semKey];
-
-        // If for some reason we can't map it (e.g. it's already Greek or invalid), use it as is? 
-        // Or should we enforce it? The user is very strict "always pass these greek words".
-        // Let's assume if it's not in the map, it might already be correct or we default to it to fail safely?
-        // But let's log specifically what we are sending.
         const finalSemester = semParam || String(semester);
 
-        console.log("📅 Fetching Schedule with:", { department: deptParam, semester: finalSemester, isAuthenticated });
+        console.log("📅 Fetching Schedule with:", { department: deptParam, departmentId, semester: finalSemester, isAuthenticated });
 
         let data: import("../features/schedule/api").ScheduleResponseDto[];
         
         if (isAuthenticated) {
              console.log("[DEBUG] Fetching authenticated schedule (Using specialized user API)");
              data = await import("../features/schedule/api").then(api => 
-                api.getUserSchedule({ department: deptParam, semester: finalSemester })
+                api.getUserSchedule({ department: deptParam, departmentId: departmentId ?? undefined, semester: finalSemester })
              );
         } else {
-             const publicSchedule = await getSchedule({ department: deptParam, semester: finalSemester });
+             const publicSchedule = await getSchedule({ department: deptParam, departmentId: departmentId ?? undefined, semester: finalSemester });
              
              if (selectedCourses && selectedCourses.length > 0) {
-                  // Only show selected courses for guest users
                   data = publicSchedule.filter(c => selectedCourses.includes(c.course_name));
              } else {
-                  // Show all courses if no selection made (Guest mode)
                   data = publicSchedule;
              }
         }

@@ -6,6 +6,7 @@ pipeline {
         IMAGE_BASE = "odysseaskalaitsidis/myionio"
         DOCKER_CREDS = "github-token"
         K8S_NAMESPACE = "myionio-prod"
+        VPS_USER = "ubuntu"
     }
 
     stages {
@@ -20,16 +21,16 @@ pipeline {
                 stage('Frontend: Lint & Build') {
                     steps {
                         dir('Frontend') {
-                            sh 'npm ci'
-                            sh 'npm run build'
+                            bat 'npm ci'
+                            bat 'npm run build'
                         }
                     }
                 }
                 stage('Backend: Test & Analysis') {
                     steps {
                         dir('Backend') {
-                            sh 'dotnet restore'
-                            sh 'dotnet build --no-restore'
+                            bat 'dotnet restore'
+                            bat 'dotnet build --no-restore'
                         }
                     }
                 }
@@ -52,17 +53,16 @@ pipeline {
             }
         }
 
-        stage(' Manual Approval') {
-            steps {
-                input message: "Promote Build #${env.BUILD_NUMBER} to Production (Kubernetes)?", ok: "Deploy"
-            }
-        }
-
-        stage(' Deploy to Kubernetes') {
+        stage(' Deploy to Production (VPS)') {
             steps {
                 script {
-                    sh 'kubectl apply -f infra/kubernetes/ -n ${K8S_NAMESPACE}'
-                    sh 'kubectl rollout status deployment/backend -n ${K8S_NAMESPACE}'
+                    // Pull VPS IP from 'vps-ip-address' secret text
+                    withCredentials([string(credentialsId: 'vps-ip-address', variable: 'VPS_HOST')]) {
+                        sshagent(['vps-ssh-creds']) {
+                            // Windows-compatible SSH command
+                            bat "ssh -o StrictHostKeyChecking=no ${env.VPS_USER}@${env.VPS_HOST} \"cd ~/MyIonio_MonoRepo && sudo docker compose pull && sudo docker compose up -d && sudo docker image prune -f\""
+                        }
+                    }
                 }
             }
         }

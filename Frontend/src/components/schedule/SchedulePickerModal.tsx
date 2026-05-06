@@ -219,7 +219,12 @@ export function SchedulePickerModal({ isOpen, onClose }: Props) {
         setIsLoading(true);
 
         try {
-            const schedule = await getSchedule({ department: "Department of Informatics", semester: value });
+            const deptId = DEPARTMENT_ID_MAP["Department of Informatics"] || 1;
+            const schedule = await getSchedule({ 
+                department: "Department of Informatics", 
+                departmentId: deptId,
+                semester: value 
+            });
             setScheduleData(schedule);
 
             if (isEarly(value)) {

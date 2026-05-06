@@ -3,7 +3,8 @@ import { api } from "../../lib/axios";
 
 // Models matching backend DTOs
 export interface ScheduleRequestDto {
-    department: string;
+    department?: string;
+    departmentId?: number;
     semester: string;
 }
 
