@@ -40,14 +40,21 @@ pipeline {
         stage(' Build & Push to Registry') {
             steps {
                 script {
-                    docker.withRegistry("https://${REGISTRY}", DOCKER_CREDS) {
-                        def backendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-backend:${env.BUILD_NUMBER}", "./Backend")
-                        backendImage.push()
-                        backendImage.push("latest")
+                    // Use standard Docker CLI commands for better Windows compatibility
+                    withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS% %REGISTRY%"
+                        
+                        // Build and Push Backend
+                        bat "docker build -t %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER% ./Backend"
+                        bat "docker tag %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER% %REGISTRY%/%IMAGE_BASE%-backend:latest"
+                        bat "docker push %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER%"
+                        bat "docker push %REGISTRY%/%IMAGE_BASE%-backend:latest"
 
-                        def frontendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-frontend:${env.BUILD_NUMBER}", "./Frontend")
-                        frontendImage.push()
-                        frontendImage.push("latest")
+                        // Build and Push Frontend
+                        bat "docker build -t %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER% ./Frontend"
+                        bat "docker tag %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER% %REGISTRY%/%IMAGE_BASE%-frontend:latest"
+                        bat "docker push %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER%"
+                        bat "docker push %REGISTRY%/%IMAGE_BASE%-frontend:latest"
                     }
                 }
             }
