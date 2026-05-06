@@ -94,7 +94,7 @@ services:
       timeout: 10s
       retries: 3
     ports:
-      - "80:80"
+      - "8080:80"
 
   ai-service:
     build:
