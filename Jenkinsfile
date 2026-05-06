@@ -22,9 +22,9 @@ pipeline {
                 stage('Frontend: Lint & Security') {
                     steps {
                         dir('Frontend') {
+                            bat "npm ci"
                             bat "npm audit"
                             bat "npm test || echo 'No tests found, skipping...'"
-                            bat "npm ci"
                             bat "npm run build"
                         }
                     }
@@ -33,9 +33,9 @@ pipeline {
                     steps {
                         dir('Backend') {
                             bat 'dotnet restore'
+                            bat "dotnet build --no-restore"
                             bat "dotnet list package --vulnerable"
-                            bat "dotnet test || echo 'No tests found, skipping...'"
-                            bat 'dotnet build --no-restore'
+                            bat "dotnet test --no-build || echo 'No tests found, skipping...'"
                         }
                     }
                 }
