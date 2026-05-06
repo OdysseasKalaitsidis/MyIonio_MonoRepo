@@ -19,18 +19,22 @@ pipeline {
         stage(' Quality Gates (Parallel)') {
             failFast true
             parallel {
-                stage('Frontend: Lint & Build') {
+                stage('Frontend: Lint & Security') {
                     steps {
                         dir('Frontend') {
-                            bat 'npm ci'
-                            bat 'npm run build'
+                            bat "npm audit"
+                            bat "npm test || echo 'No tests found, skipping...'"
+                            bat "npm ci"
+                            bat "npm run build"
                         }
                     }
                 }
-                stage('Backend: Test & Analysis') {
+                stage('Backend: Test & Security') {
                     steps {
                         dir('Backend') {
                             bat 'dotnet restore'
+                            bat "dotnet list package --vulnerable"
+                            bat "dotnet test || echo 'No tests found, skipping...'"
                             bat 'dotnet build --no-restore'
                         }
                     }

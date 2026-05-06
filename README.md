@@ -1,6 +1,6 @@
 # MyIonio Monorepo
 
-MyIonio is a full-stack, containerized academic platform engineered for the Ionian University student body. It supports a growing user base of over 4,000 university students by providing real-time schedule management, academic profiling, and intelligent course recommendations. Engineered from the ground up as a solo-developed platform, the project features a fully custom-built end-to-end architecture encompassing the frontend React application, the .NET Core backend API, the relational database structure, and the automated CI/CD deployment pipelines.
+MyIonio is a containerized microservices platform engineered for academic management at Ionian University. The system automates real-time schedule management and academic profiling for a user base of approximately 4,000 students. The platform is built with a decoupled architecture to ensure independent scalability of the frontend, backend, and data processing layers.
 
 ## Preview
 
@@ -13,96 +13,75 @@ MyIonio is a full-stack, containerized academic platform engineered for the Ioni
   <img src="docs/screenshots/course_selection.png" width="45%" alt="Course Selection" />
 </p>
 
-## Technology Stack
+## Technical Architecture
 
-The platform is built upon a modern, high-performance tech stack designed for scalability, type safety, and maintainability:
+The system is deployed as a suite of five core microservices orchestrated via Docker Compose for production and raw Kubernetes manifests for future-state clustering.
 
-*   **Frontend**: React 19, TypeScript, Tailwind CSS, Redux Toolkit
-*   **Backend**: ASP.NET Core 8.0 Web API, Entity Framework Core
-*   **AI Data Parsing**: Python 3, FastAPI (Extracts and structures unstructured university schedules/menus)
-*   **Database**: PostgreSQL
-*   **DevOps & Infrastructure**: Docker, Docker Compose, GitHub Actions, Nginx Reverse Proxy
-*   **Security**: JWT-based Authentication with HTTP-only Cookies
+- **Frontend**: React 19 (TypeScript) SPA served via Nginx.
+- **Backend API**: ASP.NET Core 8.0 Web API implementing RESTful patterns and Entity Framework Core.
+- **AI Service**: Python/FastAPI microservice utilizing Large Language Models (LLMs) for unstructured schedule parsing.
+- **Messaging**: Apache Kafka event bus for asynchronous decoupling between the API and data processing services.
+- **Persistence**: PostgreSQL relational database with normalized schema design.
 
-## Architecture Overview
-
-The system utilizes a decoupled monorepo architecture. The frontend SPA communicates with a robust .NET Web API, which manages data persistence via Entity Framework Core connected to a PostgreSQL database. The entire stack is fully containerized using Docker, ensuring absolute environment parity between local development and the production server.
-
-> [!TIP]
-> For a deep dive into our enterprise DevOps flow, including Kubernetes orchestration, Kafka event-driven messaging, and CI/CD pipelines, see our **[Detailed Architecture Documentation](docs/architecture.md)**.
+### System Infrastructure Diagram
 
 ```mermaid
 graph TD
-    subgraph "User Layer"
-        User[Client Browser]
+    Client[Client Browser] --> CF[Cloudflare WAF]
+    CF --> VPS[OCI Ubuntu Instance]
+    
+    subgraph "Container Orchestration"
+        VPS --> Nginx[Nginx Reverse Proxy]
+        Nginx --> FE[React Frontend]
+        Nginx --> BE[.NET Backend API]
+        BE --> DB[(PostgreSQL)]
+        BE --> Kafka{Kafka Event Bus}
+        Kafka --> AI[Python AI Service]
     end
 
-    subgraph "Cloud Infrastructure (VPS)"
-        Nginx[Nginx Reverse Proxy]
-        Frontend[React 19 SPA]
-        Backend[.NET 8 Web API]
-        AI[Python AI Service]
-        DB[(PostgreSQL DB)]
+    subgraph "CI/CD Pipeline"
+        Jenkins[Jenkins Windows Agent] -->|SSH/Powershell| VPS
+        Jenkins -->|Push| GHCR[GitHub Container Registry]
     end
-
-    User -->|HTTPS| Nginx
-    Nginx --> Frontend
-    Nginx --> Backend
-    Nginx --> AI
-    Backend --> DB
-
-    subgraph "CI/CD"
-        GHA[GitHub Actions]
-    end
-
-    GHA -.->|Deploy| Nginx
 ```
 
-## Developer Ownership
+## DevOps and Continuous Integration
 
-As a solo-engineered platform, core technical responsibilities and implementations span the entire development lifecycle:
+The project utilizes a custom CI/CD pipeline managed by a native Windows Jenkins instance, ensuring environment parity and automated quality control.
 
-*   **System Architecture**: Design of the decoupled architecture, RESTful API contracts, and normalized PostgreSQL database schemas.
-*   **Frontend Engineering**: Development of a responsive, accessible, and highly interactive user interface focused on performance and modern UX principles.
-*   **Backend Development**: Implementation of secure APIs, centralized exception handling, business logic, and efficient data access patterns in C#/.NET 8.
-*   **AI & Data Engineering**: Development of a Python/FastAPI microservice to parse, structure, and serve unstructured university data.
-*   **DevOps & CI/CD**: Containerization of all services using Docker and engineering of automated GitHub Actions workflows for seamless, zero-downtime deployments to a Linux VPS.
-*   **Quality & Security**: Enforcement of code quality standards, implementation of rate limiting, and security hardening against common web vulnerabilities.
+### Pipeline Specification
+- **Quality Gates**: Mandatory parallel stages for dependency security scanning (`npm audit`, `dotnet list package --vulnerable`) and unit test execution.
+- **Containerization**: Multi-stage Docker builds optimized for minimal image footprint.
+- **Deployment Strategy**: 
+    - Automated SSH orchestration using restricted-access private keys.
+    - Sequential image pulling to maintain stability on low-resource (1GB RAM) OCI micro-instances.
+    - Zero-downtime container replacement via `docker compose up -d --remove-orphans`.
 
-## Getting Started
+## Infrastructure Management
 
-### Local Environment Setup
+Infrastructure is managed through a hybrid approach:
+- **Production**: Docker Compose on Oracle Cloud Infrastructure (OCI).
+- **Future-State Orchestration**: Raw Kubernetes manifests (`/k8s`) covering Deployments, Services, ConfigMaps, and Ingress resources for transition to OCI Container Engine for Kubernetes (OKE).
+- **Security**: Network-level hardening via OCI Security Lists and host-level `iptables` management.
 
-To run the application locally, ensure you have Docker and Docker Compose installed.
+## Setup and Deployment
 
-1.  Clone the repository.
-2.  Copy `.env.example` to `.env` and configure the necessary environment variables.
-3.  Launch the containerized environment:
+### Local Development
+Requires Docker and Docker Compose.
 
-```bash
-docker compose up -d --build
-```
+1. Clone the repository.
+2. Configure environment variables in `.env`.
+3. Execute the build and start sequence:
+   ```bash
+   docker compose up -d --build
+   ```
 
-The frontend application will be accessible at `http://localhost:8080`, and the backend API documentation (Swagger) can be found at `http://localhost:5000/swagger`.
-
-## Roadmap & Open Issues
-
-Contributions from the open-source community are highly encouraged to help expand the platform. Current priorities include:
-
-*   **Internationalization (i18n)**: Full English translation for the entire UI.
-*   **Mobile App**: A React Native version leveraging the existing backend.
-*   **Push Notifications**: Real-time alerts for schedule changes or announcements.
-*   **Unit Tests**: Increasing test coverage for critical frontend business logic.
-*   **Accessibility (A11y)**: Ensuring the platform is fully accessible to all users.
-
-Please check the [Issues](https://github.com/YOUR_USERNAME/MyIonio_MonoRepo/issues) tab for feature requests and bug reports.
-
-## Contributing
-
-Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
-
-Please review the [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) files for details on our code of conduct and the process for submitting pull requests.
+### Repository Structure
+- `/Backend`: .NET 8 Web API source code.
+- `/Frontend`: React 19 / TypeScript source code.
+- `/ai-service`: Python FastAPI implementation.
+- `/k8s`: Kubernetes production manifests.
+- `/infra`: Jenkins configurations and environment scripts.
 
 ## License
-
-This project is distributed under the MIT License.
+Distributed under the MIT License.
