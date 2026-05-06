@@ -68,6 +68,9 @@ pipeline {
                         string(credentialsId: 'vps-ip-address', variable: 'VPS_HOST'),
                         sshUserPrivateKey(credentialsId: 'vps-ssh-creds', keyFileVariable: 'SSH_KEY')
                     ]) {
+                        // Fix Windows permissions for the private key (SSH requires it to be strictly restricted)
+                        bat "icacls %SSH_KEY% /inheritance:r /grant:r %USERNAME%:R"
+                        
                         // Use the full path to ssh.exe since the Jenkins service PATH might not include it
                         bat "C:\\Windows\\System32\\OpenSSH\\ssh.exe -i %SSH_KEY% -o StrictHostKeyChecking=no ${env.VPS_USER}@%VPS_HOST% \"cd ~/MyIonio_MonoRepo && sudo docker compose pull && sudo docker compose up -d && sudo docker image prune -f\""
                     }
