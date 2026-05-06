@@ -124,7 +124,7 @@ builder.Services.AddAuthentication(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173";
+    var allowedOrigins = builder.Configuration["AllowedOrigins"] ?? "https://myionio.site,http://myionio.site,http://localhost:5173";
     options.AddPolicy("AllowFrontend", policy =>
     {
         var origins = allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -139,7 +139,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(finalOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetIsOriginAllowedToAllowWildcardSubdomains(); // Allow subdomains too
     });
 });
 
