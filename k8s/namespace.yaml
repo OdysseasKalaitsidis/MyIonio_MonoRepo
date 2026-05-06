@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myionio-prod
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myionio-config
+  namespace: myionio-prod
+data:
+  DB_HOST: "myionio-db-service"
+  KAFKA_BROKER: "myionio-kafka-service:9092"

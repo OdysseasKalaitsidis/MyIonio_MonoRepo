@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myionio-frontend
+  namespace: myionio-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myionio-frontend
+  template:
+    metadata:
+      labels:
+        app: myionio-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myionio-frontend-service
+  namespace: myionio-prod
+spec:
+  selector:
+    app: myionio-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myionio-ai
+  namespace: myionio-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myionio-ai
+  template:
+    metadata:
+      labels:
+        app: myionio-ai
+    spec:
+      containers:
+      - name: ai-service
+        image: ghcr.io/odysseaskalaitsidis/myionio-ai:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: myionio-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myionio-ai-service
+  namespace: myionio-prod
+spec:
+  selector:
+    app: myionio-ai
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
