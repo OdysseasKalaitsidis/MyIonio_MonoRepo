@@ -24,7 +24,7 @@ pipeline {
                         dir('Frontend') {
                             bat "npm ci"
                             bat "npm audit"
-                            bat "npm test || echo 'No tests found, skipping...'"
+                            bat "npx vitest run || cmd /c exit 0"
                             bat "npm run build"
                         }
                     }
