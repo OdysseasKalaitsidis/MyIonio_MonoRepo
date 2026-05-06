@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using OpenAI;
 using Microsoft.AspNetCore.RateLimiting;
+using Prometheus;
 
 
 
@@ -203,6 +204,10 @@ app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Prometheus Metrics
+app.UseHttpMetrics(); 
+app.MapMetrics();
 
 app.MapControllers();
 

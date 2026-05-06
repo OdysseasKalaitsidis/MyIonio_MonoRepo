@@ -1,0 +1,22 @@
+global:
+  resolve_timeout: 5m
+  # SMTP Configuration (Placeholders)
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@myionio.site'
+  smtp_auth_username: 'YOUR_EMAIL@gmail.com'
+  smtp_auth_password: 'YOUR_APP_PASSWORD'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: 'email-notifications'
+
+receivers:
+- name: 'email-notifications'
+  email_configs:
+  - to: 'admin@myionio.site' # Where the alerts should go
+    send_resolved: true
+    html: '{{ template "email.default.html" . }}'

@@ -48,6 +48,7 @@ services:
     build:
       context: ./Backend
       dockerfile: Dockerfile
+    image: ghcr.io/odysseaskalaitsidis/myionio-backend:latest
     container_name: myionio-backend
     restart: always
     depends_on:
@@ -78,6 +79,7 @@ services:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
+    image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest
     container_name: myionio-frontend
     restart: always
     depends_on:
@@ -96,6 +98,7 @@ services:
     build:
       context: ./MyIonio-AI
       dockerfile: Dockerfile
+    image: ghcr.io/odysseaskalaitsidis/myionio-ai:latest
     container_name: myionio-ai
     restart: always
     depends_on:
@@ -109,6 +112,75 @@ services:
       - myionio-network
     ports:
       - "8000:8000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: myionio-prometheus
+    restart: always
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - myionio-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: myionio-grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - myionio-network
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: myionio-alertmanager
+    restart: always
+    volumes:
+      - ./infra/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    networks:
+      - myionio-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: myionio-node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - myionio-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: myionio-cadvisor
+    restart: always
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8081:8080"
+    networks:
+      - myionio-network
 
 networks:
   myionio-network:

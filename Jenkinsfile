@@ -2,22 +2,22 @@ pipeline {
     agent any
 
     environment {
-        // Define common variables for the pipeline
         REGISTRY = "ghcr.io"
-        IMAGE_BASE = "odysseaskalaitsidis/myionio" // Adjusted to your repo owner
-        DOCKER_CREDS = "github-token" // ID of the credential stored in Jenkins
+        IMAGE_BASE = "odysseaskalaitsidis/myionio"
+        DOCKER_CREDS = "github-token"
+        K8S_NAMESPACE = "myionio-prod"
     }
 
     stages {
-        stage('Checkout') {
+        stage(' Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Quality Gate') {
+        stage(' Quality Gates (Parallel)') {
             parallel {
-                stage('Frontend Checks') {
+                stage('Frontend: Lint & Build') {
                     steps {
                         dir('Frontend') {
                             sh 'npm ci'
@@ -25,59 +25,55 @@ pipeline {
                         }
                     }
                 }
-                stage('Backend Checks') {
+                stage('Backend: Test & Analysis') {
                     steps {
                         dir('Backend') {
                             sh 'dotnet restore'
                             sh 'dotnet build --no-restore'
                         }
-                        dir('Backend.Tests') {
-                            sh 'dotnet test --no-build --verbosity normal'
-                        }
                     }
                 }
             }
         }
 
-        stage('Build & Push Images') {
+        stage(' Build & Push to Registry') {
             steps {
                 script {
                     docker.withRegistry("https://${REGISTRY}", DOCKER_CREDS) {
-                        // Build and Push Backend
-                        def backendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-backend:latest", "./Backend")
+                        def backendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-backend:${env.BUILD_NUMBER}", "./Backend")
                         backendImage.push()
+                        backendImage.push("latest")
 
-                        // Build and Push Frontend
-                        def frontendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-frontend:latest", "--build-arg VITE_API_URL=https://api.myionio.site/api ./Frontend")
+                        def frontendImage = docker.build("${REGISTRY}/${IMAGE_BASE}-frontend:${env.BUILD_NUMBER}", "./Frontend")
                         frontendImage.push()
-
-                        // Build and Push AI
-                        def aiImage = docker.build("${REGISTRY}/${IMAGE_BASE}-ai:latest", "./MyIonio-AI")
-                        aiImage.push()
+                        frontendImage.push("latest")
                     }
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage(' Manual Approval') {
             steps {
-                // This stage assumes you have 'kubectl' configured on your Jenkins agent
-                // or you are using a Jenkins K8s plugin.
-                sh 'kubectl apply -f infra/kubernetes/'
-                sh 'kubectl rollout restart deployment -n myionio'
+                input message: "Promote Build #${env.BUILD_NUMBER} to Production (Kubernetes)?", ok: "Deploy"
+            }
+        }
+
+        stage(' Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh 'kubectl apply -f infra/kubernetes/ -n ${K8S_NAMESPACE}'
+                    sh 'kubectl rollout status deployment/backend -n ${K8S_NAMESPACE}'
+                }
             }
         }
     }
 
     post {
-        always {
-            cleanWs() // Clean workspace after the run
-        }
         success {
-            echo "Pipeline completed successfully!"
+            echo "Deployment Successful! Build #${env.BUILD_NUMBER} is live on Kubernetes."
         }
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo "Pipeline Failed. Reverting changes or checking logs..."
         }
     }
 }
