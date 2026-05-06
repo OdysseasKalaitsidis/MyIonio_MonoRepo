@@ -136,11 +136,10 @@ builder.Services.AddCors(options =>
             finalOrigins.Add(trimmed + "/");
         }
 
-        policy.WithOrigins(finalOrigins.ToArray())
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowedToAllowWildcardSubdomains(); // Allow subdomains too
+              .AllowAnyMethod();
+        // .AllowCredentials(); // Note: AllowCredentials cannot be used with AllowAnyOrigin
     });
 });
 
