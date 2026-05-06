@@ -74,7 +74,7 @@ pipeline {
                         bat "powershell -Command \"\$path = '%SSH_KEY%'; \$acl = Get-Acl \$path; \$acl.SetAccessRuleProtection(\$true, \$false); \$rule = New-Object System.Security.AccessControl.FileSystemAccessRule([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, 'Read', 'Allow'); \$acl.SetAccessRule(\$rule); Set-Acl \$path \$acl\""
                         
                         // Log in to the registry on the VPS and then pull/up the core services
-                        bat "C:\\Windows\\System32\\OpenSSH\\ssh.exe -i %SSH_KEY% -o StrictHostKeyChecking=no ${env.VPS_USER}@%VPS_HOST% \"echo %DOCKER_PASS% | sudo docker login ghcr.io -u %DOCKER_USER% --password-stdin && cd ~/MyIonio_MonoRepo && sudo docker compose pull db kafka backend frontend ai-service && sudo docker compose up -d db kafka backend frontend ai-service && sudo docker image prune -f\""
+                        bat "C:\\Windows\\System32\\OpenSSH\\ssh.exe -i %SSH_KEY% -o StrictHostKeyChecking=no ${env.VPS_USER}@%VPS_HOST% \"echo %DOCKER_PASS% | sudo docker login ghcr.io -u %DOCKER_USER% --password-stdin && cd ~/MyIonio_MonoRepo && sudo docker compose pull db kafka backend frontend ai-service && sudo docker compose up -d --remove-orphans db kafka backend frontend ai-service && sudo docker image prune -f\""
                     }
                 }
             }
