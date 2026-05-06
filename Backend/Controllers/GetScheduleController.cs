@@ -70,26 +70,18 @@ namespace MyIonio.Controllers
             // Retrieve metadata from the database
             var allSchedulesMetadata = await _context.schedules
                 .AsNoTracking()
-                .Select(s => new { s.id, s.department, s.DepartmentId, s.semester })
+                .Select(s => new { s.id, s.department, s.semester })
                 .ToListAsync();
 
             var scheduleId = allSchedulesMetadata.FirstOrDefault(s =>
             {
-                // Check DepartmentId first (Modern way)
-                if (dto.DepartmentId.HasValue)
-                {
-                    if (s.DepartmentId != dto.DepartmentId.Value) return false;
-                }
-                else
-                {
-                    // Fallback to string matching (Legacy way)
-                    var sDept = s.department?.Trim();
-                    bool deptMatch = string.Equals(sDept, dto.Department?.Trim(), StringComparison.OrdinalIgnoreCase) ||
-                                     string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
-                                     (dto.Department?.Contains("Informatics", StringComparison.OrdinalIgnoreCase) == true && sDept?.Contains("ΠΛΗΡΟΦΟΡΙΚΗΣ", StringComparison.OrdinalIgnoreCase) == true);
-                    
-                    if (!deptMatch) return false;
-                }
+                // Fallback to string matching (Legacy way)
+                var sDept = s.department?.Trim();
+                bool deptMatch = string.Equals(sDept, dto.Department?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(sDept, normalizedDepartment, StringComparison.OrdinalIgnoreCase) ||
+                                 (dto.Department?.Contains("Informatics", StringComparison.OrdinalIgnoreCase) == true && sDept?.Contains("ΠΛΗΡΟΦΟΡΙΚΗΣ", StringComparison.OrdinalIgnoreCase) == true);
+                
+                if (!deptMatch) return false;
 
                 // Check semester
                 var sSem = NormalizeSemester(s.semester);

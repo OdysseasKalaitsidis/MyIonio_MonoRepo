@@ -136,10 +136,10 @@ builder.Services.AddCors(options =>
             finalOrigins.Add(trimmed + "/");
         }
 
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://myionio.site", "http://myionio.site", "http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
-        // .AllowCredentials(); // Note: AllowCredentials cannot be used with AllowAnyOrigin
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
