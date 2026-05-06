@@ -41,21 +41,19 @@ pipeline {
         stage(' Build & Push to Registry') {
             steps {
                 script {
-                    // Use standard Docker CLI commands for better Windows compatibility
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        // Secure login using stdin
-                        bat "echo %DOCKER_PASS% | docker login %REGISTRY% -u %DOCKER_USER% --password-stdin"
+                        bat "echo %DOCKER_PASS% | docker login ghcr.io -u %DOCKER_USER% --password-stdin"
                         
-                        def backendImage = "${REGISTRY}/${IMAGE_BASE}-backend"
-                        def frontendImage = "${REGISTRY}/${IMAGE_BASE}-frontend"
-
-                        // Build both tags at once
-                        bat "docker build -t ${backendImage}:${BUILD_NUMBER} -t ${backendImage}:latest ./Backend"
-                        bat "docker build -t ${frontendImage}:${BUILD_NUMBER} -t ${frontendImage}:latest ./Frontend"
-
-                        // Push all tags
-                        bat "docker push ${backendImage} --all-tags"
-                        bat "docker push ${frontendImage} --all-tags"
+                        parallel(
+                            "Backend": {
+                                bat "docker build -t ghcr.io/odysseaskalaitsidis/myionio-backend:${env.BUILD_NUMBER} -t ghcr.io/odysseaskalaitsidis/myionio-backend:latest ./Backend"
+                                bat "docker push ghcr.io/odysseaskalaitsidis/myionio-backend --all-tags"
+                            },
+                            "Frontend": {
+                                bat "docker build -t ghcr.io/odysseaskalaitsidis/myionio-frontend:${env.BUILD_NUMBER} -t ghcr.io/odysseaskalaitsidis/myionio-frontend:latest ./Frontend"
+                                bat "docker push ghcr.io/odysseaskalaitsidis/myionio-frontend --all-tags"
+                            }
+                        )
                     }
                 }
             }
