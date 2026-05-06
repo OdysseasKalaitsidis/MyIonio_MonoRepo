@@ -17,6 +17,7 @@ pipeline {
         }
 
         stage(' Quality Gates (Parallel)') {
+            failFast true
             parallel {
                 stage('Frontend: Lint & Build') {
                     steps {
@@ -42,19 +43,19 @@ pipeline {
                 script {
                     // Use standard Docker CLI commands for better Windows compatibility
                     withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS% %REGISTRY%"
+                        // Secure login using stdin
+                        bat "echo %DOCKER_PASS% | docker login %REGISTRY% -u %DOCKER_USER% --password-stdin"
                         
-                        // Build and Push Backend
-                        bat "docker build -t %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER% ./Backend"
-                        bat "docker tag %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER% %REGISTRY%/%IMAGE_BASE%-backend:latest"
-                        bat "docker push %REGISTRY%/%IMAGE_BASE%-backend:%BUILD_NUMBER%"
-                        bat "docker push %REGISTRY%/%IMAGE_BASE%-backend:latest"
+                        def backendImage = "${REGISTRY}/${IMAGE_BASE}-backend"
+                        def frontendImage = "${REGISTRY}/${IMAGE_BASE}-frontend"
 
-                        // Build and Push Frontend
-                        bat "docker build -t %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER% ./Frontend"
-                        bat "docker tag %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER% %REGISTRY%/%IMAGE_BASE%-frontend:latest"
-                        bat "docker push %REGISTRY%/%IMAGE_BASE%-frontend:%BUILD_NUMBER%"
-                        bat "docker push %REGISTRY%/%IMAGE_BASE%-frontend:latest"
+                        // Build both tags at once
+                        bat "docker build -t ${backendImage}:${BUILD_NUMBER} -t ${backendImage}:latest ./Backend"
+                        bat "docker build -t ${frontendImage}:${BUILD_NUMBER} -t ${frontendImage}:latest ./Frontend"
+
+                        // Push all tags
+                        bat "docker push ${backendImage} --all-tags"
+                        bat "docker push ${frontendImage} --all-tags"
                     }
                 }
             }
@@ -68,9 +69,8 @@ pipeline {
                         string(credentialsId: 'vps-ip-address', variable: 'VPS_HOST'),
                         sshUserPrivateKey(credentialsId: 'vps-ssh-creds', keyFileVariable: 'SSH_KEY')
                     ]) {
-                        // Fix Windows permissions for the private key (SSH requires it to be strictly restricted)
                         // Fix Windows permissions for the private key using PowerShell (SSH requires it to be strictly restricted)
-                        powershell "            \$path = '${SSH_KEY}';             \$acl = Get-Acl \$path;             \$acl.SetInheritance(\$false, \$false);             \$rule = New-Object System.Security.AccessControl.FileSystemAccessRule([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, 'Read', 'Allow');             \$acl.SetAccessRule(\$rule);             Set-Acl \$path \$acl"
+                        bat "powershell -Command \"\$path = '%SSH_KEY%'; \$acl = Get-Acl \$path; \$acl.SetAccessRuleProtection(\$true, \$false); \$rule = New-Object System.Security.AccessControl.FileSystemAccessRule([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, 'Read', 'Allow'); \$acl.SetAccessRule(\$rule); Set-Acl \$path \$acl\""
                         
                         // Use the full path to ssh.exe since the Jenkins service PATH might not include it
                         bat "C:\\Windows\\System32\\OpenSSH\\ssh.exe -i %SSH_KEY% -o StrictHostKeyChecking=no ${env.VPS_USER}@%VPS_HOST% \"cd ~/MyIonio_MonoRepo && sudo docker compose pull && sudo docker compose up -d && sudo docker image prune -f\""
@@ -82,10 +82,13 @@ pipeline {
 
     post {
         success {
-            echo "Deployment Successful! Build #${env.BUILD_NUMBER} is live on Kubernetes."
+            echo "Deployment Successful! Build #${env.BUILD_NUMBER} is live on VPS."
         }
         failure {
             echo "Pipeline Failed. Reverting changes or checking logs..."
+        }
+        always {
+            cleanWs() // Wipe the workspace to prevent disk bloat
         }
     }
 }
