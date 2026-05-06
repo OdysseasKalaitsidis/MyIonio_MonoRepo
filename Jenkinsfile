@@ -63,12 +63,13 @@ pipeline {
         stage(' Deploy to Production (VPS)') {
             steps {
                 script {
-                    // Pull VPS IP from 'vps-ip-address' secret text
-                    withCredentials([string(credentialsId: 'vps-ip-address', variable: 'VPS_HOST')]) {
-                        sshagent(['vps-ssh-creds']) {
-                            // Windows-compatible SSH command
-                            bat "ssh -o StrictHostKeyChecking=no ${env.VPS_USER}@${env.VPS_HOST} \"cd ~/MyIonio_MonoRepo && sudo docker compose pull && sudo docker compose up -d && sudo docker image prune -f\""
-                        }
+                    // Pull VPS IP and SSH Key file
+                    withCredentials([
+                        string(credentialsId: 'vps-ip-address', variable: 'VPS_HOST'),
+                        sshUserPrivateKey(credentialsId: 'vps-ssh-creds', keyFileVariable: 'SSH_KEY')
+                    ]) {
+                        // Use the key file directly with the -i flag
+                        bat "ssh -i %SSH_KEY% -o StrictHostKeyChecking=no ${env.VPS_USER}@%VPS_HOST% \"cd ~/MyIonio_MonoRepo && sudo docker compose pull && sudo docker compose up -d && sudo docker image prune -f\""
                     }
                 }
             }
