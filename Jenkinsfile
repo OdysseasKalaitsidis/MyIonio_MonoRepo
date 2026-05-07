@@ -83,15 +83,13 @@ pipeline {
                         echo "Logging into Registry on VPS..."
                         runOnVps("echo %DOCKER_PASS% | sudo docker login ghcr.io -u %DOCKER_USER% --password-stdin")
                         
-                        echo "Pulling images sequentially..."
+                        echo "Pulling core images sequentially..."
                         runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose pull db")
-                        runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose pull kafka")
                         runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose pull backend")
                         runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose pull frontend")
-                        runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose pull ai-service")
 
-                        echo "Starting services..."
-                        runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose up -d --remove-orphans db kafka backend frontend ai-service")
+                        echo "Starting core services..."
+                        runOnVps("cd ~/MyIonio_MonoRepo && sudo docker compose up -d --remove-orphans db backend frontend")
                         
                         echo "Cleaning up..."
                         runOnVps("sudo docker image prune -f")
