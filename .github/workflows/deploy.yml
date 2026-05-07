@@ -12,7 +12,7 @@ jobs:
     name: Quality Gate (Compilation & Tests)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Frontend Checks
       - name: Setup Node.js
@@ -52,7 +52,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Image Name
         run: |
@@ -83,7 +83,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Image Name
         run: |
