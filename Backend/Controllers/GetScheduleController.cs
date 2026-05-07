@@ -57,11 +57,16 @@ namespace MyIonio.Controllers
 
             var normalizedTargetSemester = NormalizeSemester(targetSemester);
             
-            // Map English department to Greek if needed
+            // Map English and Mixed-Case Greek department to Uppercase Greek
             var normalizedDepartment = dto.Department?.Trim();
-            if (string.Equals(normalizedDepartment, "Department of Informatics", StringComparison.OrdinalIgnoreCase)) 
+            if (string.Equals(normalizedDepartment, "Department of Informatics", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(normalizedDepartment, "Τμήμα Πληροφορικής", StringComparison.OrdinalIgnoreCase)) 
             {
                 normalizedDepartment = "ΤΜΗΜΑ ΠΛΗΡΟΦΟΡΙΚΗΣ";
+            }
+            else 
+            {
+                normalizedDepartment = normalizedDepartment?.ToUpper();
             }
 
             // Prevent Nginx 502 Bad Gateway on large JSON responses by disabling proxy buffering
