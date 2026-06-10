@@ -108,10 +108,18 @@ services:
     depends_on:
       kafka:
         condition: service_started
+      db:
+        condition: service_healthy
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - BACKEND_URL=http://backend:5000
+      # Direct PostgreSQL connection (same cluster as C# backend)
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
     networks:
       - myionio-network
     ports:

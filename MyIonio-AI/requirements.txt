@@ -6,6 +6,8 @@ loguru
 python-dotenv
 openai
 supabase
-pydantic
+pydantic>=2.0
 pypdf
-confluent-kafka
+confluent-kafka
+asyncpg
+google-genai

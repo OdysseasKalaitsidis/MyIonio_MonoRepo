@@ -84,6 +84,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
     },
   },
@@ -110,6 +111,9 @@ const authSlice = createSlice({
 
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
+        if (payload.refreshToken) {
+          localStorage.setItem("refreshToken", payload.refreshToken);
+        }
 
 
       })
@@ -120,6 +124,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
       })
       .addCase(loginWithGoogle.pending, (state) => {
@@ -138,6 +143,9 @@ const authSlice = createSlice({
         state.loading = false;
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
+        if (payload.refreshToken) {
+          localStorage.setItem("refreshToken", payload.refreshToken);
+        }
       })
       .addCase(loginWithGoogle.rejected, (state, action) => {
         state.loading = false;
@@ -146,6 +154,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
       })
       .addCase(registerWithGoogle.pending, (state) => {
@@ -164,6 +173,9 @@ const authSlice = createSlice({
         state.loading = false;
         localStorage.setItem("user", JSON.stringify(payload));
         localStorage.setItem("token", payload.token);
+        if (payload.refreshToken) {
+          localStorage.setItem("refreshToken", payload.refreshToken);
+        }
       })
       .addCase(registerWithGoogle.rejected, (state, action) => {
         state.loading = false;
@@ -172,6 +184,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
       });
   },

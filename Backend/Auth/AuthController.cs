@@ -106,7 +106,13 @@ namespace MyIonio.Controllers
         {
             try
             {
-                var result = await _authService.HandleGoogleLoginAsync(dto);
+                var result = await _authService.HandleGoogleAuthAsync(
+                    dto.IdToken, 
+                    dto.Semester, 
+                    dto.Department, 
+                    dto.Major, 
+                    dto.Minor, 
+                    dto.EnrolledCourses);
                 return Ok(result);
             }
             catch (Google.Apis.Auth.InvalidJwtException)
@@ -115,31 +121,31 @@ namespace MyIonio.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception details here...
-                // _logger.LogError(ex, "Google Login failed");
-
-                return StatusCode(500, new { message = "An internal error occurred during authentication." });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
         
         [HttpPost("google-register")]
         [EnableRateLimiting("Signup")]
-    public async Task<ActionResult<AuthResponseDto>> GoogleRegister([FromBody] RegisterGoogleRequestDto requestDto)
-    {
-        try
+        public async Task<ActionResult<AuthResponseDto>> GoogleRegister([FromBody] RegisterGoogleRequestDto dto)
         {
-            // 1. Call the service method we created
-            var response = await _authService.AuthRegisterGoogleAsync(requestDto);
-            
-            // 2. Return the token and user info
-            return Ok(response);
+            try
+            {
+                var result = await _authService.HandleGoogleAuthAsync(
+                    dto.IdToken, 
+                    dto.Semester, 
+                    dto.Department, 
+                    null, 
+                    null, 
+                    null, 
+                    dto.Recommendation);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-        catch (Exception ex)
-        {
-            // 3. Handle errors (e.g., "User already exists", "Invalid Token")
-            return BadRequest(new { message = ex.Message });
-        }
-    }
 
 
         [HttpGet("me")]
