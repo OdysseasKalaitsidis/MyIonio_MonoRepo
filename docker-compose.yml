@@ -113,7 +113,7 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - BACKEND_URL=http://backend:5000
+      - BACKEND_URL=http://backend:80
       # Direct PostgreSQL connection (same cluster as C# backend)
       - DB_HOST=db
       - DB_PORT=5432

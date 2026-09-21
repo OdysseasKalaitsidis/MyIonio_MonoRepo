@@ -156,11 +156,7 @@ builder.Services.AddHttpContextAccessor();
 // Application Services
 builder.Services.AddScoped<INotesService, NotesService>();
 
-// Kafka Producer — Singleton because IProducer<> is thread-safe and expensive to create
-builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
-
-
-// Kafka Services
+// Kafka Producer & Consumer Services
 builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
 builder.Services.AddHostedService<KafkaConsumerService>();
 
