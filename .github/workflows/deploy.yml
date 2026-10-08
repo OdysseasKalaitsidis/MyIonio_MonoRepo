@@ -199,14 +199,36 @@ jobs:
             sudo docker compose up -d --remove-orphans db backend frontend ai-service
             sudo docker compose ps --status running db backend frontend ai-service
 
-            # Wait for public routes instead of racing container startup/migrations.
-            for url in https://myionio.site/health https://api.myionio.site/api/health https://ai.myionio.site/; do
+            # Check the services through their local published ports. Public DNS can
+            # hairpin or be unavailable from the VPS even while a service is healthy.
+            check_service() {
+              name="$1"
+              url="$2"
+              container="$3"
               healthy=false
               for attempt in $(seq 1 30); do
-                if curl --fail --silent --show-error "${url}" > /dev/null; then healthy=true; break; fi
+                if curl --fail --silent --show-error --connect-timeout 3 --max-time 5 "${url}" > /dev/null; then
+                  healthy=true
+                  break
+                fi
                 sleep 5
               done
-              test "${healthy}" = true || { echo "Health check failed: ${url}"; exit 1; }
-            done
+
+              if [ "${healthy}" != true ]; then
+                echo "Local health check failed: ${name} (${url})"
+                sudo docker compose ps
+                sudo docker logs --tail 200 "${container}" || true
+                exit 1
+              fi
+            }
+
+            check_service frontend http://127.0.0.1:8080/health myionio-frontend
+            check_service backend http://127.0.0.1:5001/api/health myionio-backend
+            check_service ai-service http://127.0.0.1:8000/ myionio-ai
 
             sudo docker image prune -f
+
+      - name: Verify public app routes
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://myionio.site/health
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://api.myionio.site/api/health
