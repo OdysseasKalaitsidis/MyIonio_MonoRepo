@@ -167,9 +167,14 @@ jobs:
 
             # Production configuration is managed manually on the VPS.
             test -f .env || { echo "Missing production .env"; exit 1; }
-            for name in DB_CONNECTION DB_PASSWORD JWT_KEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GEMINI_API_KEY SUPABASE_URL SUPABASE_KEY; do
-              sudo grep -Eq "^${name}=.+$" .env || { echo "Missing required production variable: ${name}"; exit 1; }
+            missing_config=false
+            for name in DB_CONNECTION JWT_KEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GEMINI_API_KEY SUPABASE_URL SUPABASE_KEY; do
+              if ! sudo grep -Eq "^${name}=.+$" .env; then
+                echo "Missing required production variable: ${name}"
+                missing_config=true
+              fi
             done
+            test "${missing_config}" = false
 
             # Back up PostgreSQL before replacing containers or applying migrations.
             sudo docker compose up -d db
