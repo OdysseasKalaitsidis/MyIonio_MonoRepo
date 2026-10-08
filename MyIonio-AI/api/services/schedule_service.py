@@ -56,7 +56,7 @@ async def process_schedule_pdf(file: UploadFile):
             logger.info("=" * 50)
 
         # NOTE: Direct DB write removed. In the future, this should also 
-        # publish to Kafka like the notes feature does.
+        # persist through the unified ingestion pipeline.
         return {
             "success": True, 
             "courses_count": len(all_courses),

@@ -21,8 +21,6 @@ spec:
         env:
         - name: ASPNETCORE_ENVIRONMENT
           value: "Production"
-        - name: Kafka__BootstrapServers
-          value: "kafka-service:9092"
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:

@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { X, ChevronRight, Check } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreferences, updateCoursePreferences } from '../../features/preferences/preferencesSlice';
-import { DEPARTMENTS_LIST, DEPARTMENT_ID_MAP } from '../../features/preferences/constants';
+import { ACTIVE_SEMESTERS, DEPARTMENTS_LIST, DEPARTMENT_ID_MAP, semesterIdFromValue } from '../../features/preferences/constants';
 import type { RootState } from '../../app/store';
 
 interface QuickPickerModalProps {
@@ -13,9 +13,9 @@ interface QuickPickerModalProps {
 }
 
 const MAJORS = [
-    { id: "ΒΥΝ", label: "Big Data & Intelligence" },
-    { id: "ΚΔΕ", label: "Networks & Security" },
-    { id: "ΨΜΑΔ", label: "Digital Business" }
+    { id: "ΒΥΝ", label: "Μεγάλα δεδομένα και νοημοσύνη" },
+    { id: "ΚΔΕ", label: "Δίκτυα και ασφάλεια" },
+    { id: "ΨΜΑΔ", label: "Ψηφιακή επιχειρηματικότητα" }
 ];
 
 const TOOLBOXES = ["TB1", "TB2", "TB3", "TB4", "TB5"];
@@ -33,10 +33,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
 
   const departments = DEPARTMENTS_LIST;
   
-  const semesters = (() => {
-      // Force Summer/Spring semester (Even) as requested
-      return ["Β", "Δ", "ΣΤ", "Η"];
-  })();
+  const semesters = ACTIVE_SEMESTERS.map((semester) => semester.code);
 
   // Reset state when opening
   useEffect(() => {
@@ -58,8 +55,8 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
   const handleSemesterSelect = (sem: string) => {
     setSelectedSem(sem);
     
-    // Check if advanced preferences are needed (Semesters ΣΤ or Η)
-    if (sem === "ΣΤ" || sem === "Η") {
+    // The active advanced semester requires major/minor preferences.
+    if (sem === "Ζ") {
         setTimeout(() => setStep('major-minor'), 200);
     } else {
         finishSelection(selectedDept!, sem);
@@ -78,7 +75,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
 
   const finishSelection = (dept: string, sem: string, major?: string, minor?: string, toolbox?: string[]) => {
       const deptId = DEPARTMENT_ID_MAP[dept] || 1; 
-      dispatch(setPreferences({ department: dept, departmentId: deptId, semester: sem }));
+      dispatch(setPreferences({ department: dept, departmentId: deptId, semester: sem, semesterId: semesterIdFromValue(sem) ?? undefined }));
       if (major || minor || toolbox) {
           dispatch(updateCoursePreferences({ major, minor, toolbox }));
       }
@@ -100,10 +97,10 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
 
   const getStepTitle = () => {
       switch(step) {
-          case 'department': return 'Select Department';
-          case 'semester': return 'Select Semester';
-          case 'major-minor': return 'Select Stream & Minor';
-          case 'toolbox': return 'Select Toolbox Courses';
+          case 'department': return 'Επίλεξε τμήμα';
+          case 'semester': return 'Επίλεξε εξάμηνο';
+          case 'major-minor': return 'Επίλεξε κατεύθυνση και ελάσσονα';
+          case 'toolbox': return 'Επίλεξε μαθήματα εργαλειοθήκης';
       }
   };
 
@@ -176,7 +173,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                                     }`}
                                 >
                                     <span className="text-2xl font-bold mb-1">{sem}</span>
-                                    <span className="text-xs uppercase tracking-wider opacity-60">Semester</span>
+                                    <span className="text-xs uppercase tracking-wider opacity-60">Εξάμηνο</span>
                                 </button>
                             ))}
                         </div>
@@ -185,7 +182,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                     {step === 'major-minor' && (
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Select Major (Stream)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Επίλεξε κατεύθυνση</label>
                                 <div className="space-y-2">
                                     {MAJORS.map((m) => (
                                         <button
@@ -204,7 +201,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                                 </div>
                             </div>
                              <div className="space-y-3">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Select Minor</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Επίλεξε ελάσσονα κατεύθυνση</label>
                                 <div className="space-y-2">
                                     {MAJORS.map((m) => (
                                         <button
@@ -230,7 +227,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                                 disabled={!selectedMajor || !selectedMinor}
                                 className="w-full bg-ionian-blue disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-all"
                             >
-                                Continue
+                                Συνέχεια
                             </button>
                         </div>
                     )}
@@ -238,7 +235,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                     {step === 'toolbox' && (
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Select Toolbox Courses</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Επίλεξε μαθήματα εργαλειοθήκης</label>
                                 <div className="grid grid-cols-3 gap-3">
                                     {TOOLBOXES.map((tb) => (
                                         <button
@@ -260,7 +257,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                                 onClick={handleToolboxSubmit}
                                 className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg"
                             >
-                                Confirm Setup
+                                Επιβεβαίωσε τη ρύθμιση
                             </button>
                         </div>
                     )}
@@ -276,7 +273,7 @@ export function QuickPickerModal({ isOpen, onClose, onComplete }: QuickPickerMod
                             }}
                             className="text-sm text-gray-400 hover:text-white"
                         >
-                            ← Back
+                            ← Πίσω
                         </button>
                     )}
                 </div>

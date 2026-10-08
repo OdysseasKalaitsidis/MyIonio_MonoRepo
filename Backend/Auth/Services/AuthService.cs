@@ -295,7 +295,8 @@ namespace MyIonio
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FirstName ?? "User"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("semester", user.Semester ?? "")
+                new Claim("semester", user.Semester ?? ""),
+                new Claim(ClaimTypes.Role, IsConfiguredAdmin(user.Email) ? "Admin" : "Student")
 
             }),
                 Expires = DateTime.UtcNow.AddHours(_jwtSettings.ExpiryHours),
@@ -308,6 +309,13 @@ namespace MyIonio
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private bool IsConfiguredAdmin(string email)
+        {
+            var configured = _config["Admin:Emails"] ?? "";
+            return configured.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Any(item => string.Equals(item, email, StringComparison.OrdinalIgnoreCase));
         }
 
 

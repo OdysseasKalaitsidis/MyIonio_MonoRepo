@@ -46,7 +46,7 @@ export function FuelCard() {
             <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400">
                     <Utensils size={20} />
-                    <span className="text-[10px] md:text-sm font-medium uppercase tracking-widest">FOOD</span>
+                    <span className="text-[10px] md:text-sm font-medium uppercase tracking-widest">ΣΙΤΙΣΗ</span>
                 </div>
                 
                 {/* Live Pill */}
@@ -57,21 +57,21 @@ export function FuelCard() {
                         : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
                 )}>
                     <div className={cn("w-1.5 h-1.5 rounded-full", isOpen ? "bg-green-500 dark:bg-green-400 animate-pulse" : "bg-red-500 dark:bg-red-400")} />
-                    {isOpen ? "Open" : "Closed"}
+                    {isOpen ? "Ανοιχτή" : "Κλειστή"}
                 </div>
             </div>
 
             {/* Central Content */}
             <div className="flex-1 flex flex-col items-center justify-center text-center -mt-6">
                 <h3 className="text-xl md:text-5xl font-bold text-slate-900 dark:text-white mb-1 md:mb-2 transition-colors tracking-tight">
-                    Restaurant
+                    Λέσχη
                 </h3>
-                 <p className="text-xs md:text-base text-slate-500 dark:text-gray-400 font-medium">{isOpen ? "Serving Now" : "Currently Closed"}</p>
+                 <p className="text-xs md:text-base text-slate-500 dark:text-gray-400 font-medium">{isOpen ? "Σερβίρει τώρα" : "Κλειστή αυτή τη στιγμή"}</p>
             </div>
 
             {/* Footer / Action */}
              <div className="flex items-center gap-2 text-xs md:text-sm text-slate-500 dark:text-gray-500 group-hover:text-ionian-blue transition-colors cursor-pointer justify-center">
-                <span>View weekly menu</span>
+                <span>Δες το εβδομαδιαίο μενού</span>
                 <span className="text-lg">→</span>
             </div>
         </div>

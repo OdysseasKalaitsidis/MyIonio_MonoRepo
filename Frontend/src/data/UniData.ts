@@ -7,6 +7,7 @@ export const MajorsMap: Record<string, string> = {
   // Add Latin keys for DB compatibility
   BYN: "Bioinformatics & Computational Intelligence",
   KDE: "Cybersecurity & Communication Networks",
+  PSMAD: "Digital Transformation & Data Analytics",
 };
 
 export const ToolboxesMap: Record<string, string> = {

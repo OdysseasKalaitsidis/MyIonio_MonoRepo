@@ -26,7 +26,8 @@ namespace MyIonio.Data
         public DbSet<weekly_menus> weekly_menus { get; set; }
         public DbSet<ExaminationSchedule> ExaminationSchedules { get; set; }
         public DbSet<CourseReview> CourseReviews { get; set; }
-        public DbSet<Note> Notes { get; set; }
+        public DbSet<CourseCatalogEntry> CourseCatalog { get; set; }
+        public DbSet<SemesterDefinition> Semesters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -93,43 +94,67 @@ namespace MyIonio.Data
                 .Property(w => w.week_end)
                 .HasColumnType("timestamptz");
 
-            // ExaminationSchedule configuration
+            // Shared JSON configuration
             // Create JsonSerializerOptions that respect [JsonPropertyName] attributes
-            var examJsonOptions = new JsonSerializerOptions
+            var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 WriteIndented = false
             };
-            
+
+            modelBuilder.Entity<SemesterDefinition>().ToTable("semesters");
+            modelBuilder.Entity<SemesterDefinition>().Property(s => s.Id).HasColumnName("id");
+            modelBuilder.Entity<SemesterDefinition>().Property(s => s.Code).HasColumnName("code");
+            modelBuilder.Entity<SemesterDefinition>().HasIndex(s => s.Code).IsUnique();
+            modelBuilder.Entity<SemesterDefinition>().HasData(
+                new SemesterDefinition { Id = 1, Code = "Α" },
+                new SemesterDefinition { Id = 2, Code = "Β" },
+                new SemesterDefinition { Id = 3, Code = "Γ" },
+                new SemesterDefinition { Id = 4, Code = "Δ" },
+                new SemesterDefinition { Id = 5, Code = "Ε" },
+                new SemesterDefinition { Id = 6, Code = "ΣΤ" },
+                new SemesterDefinition { Id = 7, Code = "Ζ" },
+                new SemesterDefinition { Id = 8, Code = "Η" });
+
             modelBuilder.Entity<ExaminationSchedule>()
-                .ToTable("exam_schedules"); // Map to the correct table name
-            
-            modelBuilder.Entity<ExaminationSchedule>()
-                .Property(e => e.Id)
-                .HasColumnName("id");
-            
-            modelBuilder.Entity<ExaminationSchedule>()
-                .Property(e => e.Department)
-                .HasColumnName("department");
-            
-            modelBuilder.Entity<ExaminationSchedule>()
-                .Property(e => e.Semester)
-                .HasColumnName("semester");
-            
-            modelBuilder.Entity<ExaminationSchedule>()
-                .Property(e => e.Period)
-                .HasColumnName("period");
-            
+                .ToTable("exam_schedules");
+
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.Id).HasColumnName("id");
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.Department).HasColumnName("department");
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.DepartmentId).HasColumnName("department_id");
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.Semester).HasColumnName("semester");
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.SemesterId).HasColumnName("semester_id");
+            modelBuilder.Entity<ExaminationSchedule>().Property(e => e.Period).HasColumnName("period");
             modelBuilder.Entity<ExaminationSchedule>()
                 .Property(e => e.Exams)
                 .HasColumnName("exams")
                 .HasColumnType("jsonb")
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v ?? new List<ExamItem>(), examJsonOptions),
-                    v => JsonSerializer.Deserialize<List<ExamItem>>(v, examJsonOptions) ?? new List<ExamItem>()
+                    v => JsonSerializer.Serialize(v ?? new List<ExamItem>(), jsonOptions),
+                    v => JsonSerializer.Deserialize<List<ExamItem>>(v, jsonOptions) ?? new List<ExamItem>()
                 );
-        
 
+            modelBuilder.Entity<CourseCatalogEntry>().ToTable("course_catalog");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Id).HasColumnName("id");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.CourseId).HasColumnName("course_id");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Department).HasColumnName("department");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Semester).HasColumnName("semester");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.SemesterId).HasColumnName("semester_id");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.AcademicYear).HasColumnName("academic_year");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.CourseName).HasColumnName("course_name");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.TheoryHours).HasColumnName("theory_hours");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.LabHours).HasColumnName("lab_hours");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.TutorialHours).HasColumnName("tutorial_hours");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.TeachingUnits).HasColumnName("teaching_units");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Ects).HasColumnName("ects");
+            modelBuilder.Entity<CourseCatalogEntry>().HasIndex(c => new { c.CourseId, c.Department, c.Semester, c.AcademicYear }).IsUnique().HasDatabaseName("IX_course_catalog_identity");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Roles).HasColumnName("roles").HasColumnType("jsonb").HasConversion(
+                v => JsonSerializer.Serialize(v ?? new List<CourseRole>(), jsonOptions),
+                v => JsonSerializer.Deserialize<List<CourseRole>>(v, jsonOptions) ?? new List<CourseRole>());
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Toolboxes).HasColumnName("toolboxes").HasColumnType("jsonb").HasConversion(
+                v => JsonSerializer.Serialize(v ?? new List<string>(), jsonOptions),
+                v => JsonSerializer.Deserialize<List<string>>(v, jsonOptions) ?? new List<string>());
+            modelBuilder.Ignore<CourseRole>();
 
             modelBuilder.Entity<Schedules>()
                 .ToTable("class_schedules");
@@ -148,8 +173,16 @@ namespace MyIonio.Data
                  .HasColumnName("department");
 
             modelBuilder.Entity<Schedules>()
+                 .Property(s => s.DepartmentId)
+                 .HasColumnName("department_id");
+
+            modelBuilder.Entity<Schedules>()
                  .Property(s => s.semester)
                  .HasColumnName("semester");
+
+            modelBuilder.Entity<Schedules>()
+                 .Property(s => s.SemesterId)
+                 .HasColumnName("semester_id");
 
             modelBuilder.Entity<Schedules>()
                  .Property(s => s.academic_year)
@@ -164,8 +197,8 @@ namespace MyIonio.Data
                 .HasColumnName("courses")
                 .HasColumnType("jsonb")
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v ?? new List<CourseEntry>(), examJsonOptions),
-                    v => JsonSerializer.Deserialize<List<CourseEntry>>(v, examJsonOptions) ?? new List<CourseEntry>()
+                    v => JsonSerializer.Serialize(v ?? new List<CourseEntry>(), jsonOptions),
+                    v => JsonSerializer.Deserialize<List<CourseEntry>>(v, jsonOptions) ?? new List<CourseEntry>()
                 );
         
             // Configure User.EnrolledCourses as jsonb
@@ -173,24 +206,17 @@ namespace MyIonio.Data
                 .Property(u => u.EnrolledCourses)
                 .HasColumnType("jsonb")
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v ?? new Dictionary<string, List<string>>(), examJsonOptions),
-                    v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, examJsonOptions) ?? new Dictionary<string, List<string>>()
+                    v => JsonSerializer.Serialize(v ?? new Dictionary<string, List<string>>(), jsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, jsonOptions) ?? new Dictionary<string, List<string>>()
                 );
 
-            // Configure Note
-            modelBuilder.Entity<Note>()
-                .ToTable("notes")
-                .Property(n => n.FileContent)
-                .HasColumnType("bytea");
 
-            modelBuilder.Entity<Note>()
-                .HasOne(n => n.Uploader)
-                .WithMany()
-                .HasForeignKey(n => n.UploadedBy);
+            modelBuilder.Entity<User>().Property(u => u.EnrolledCourseIds).HasColumnType("jsonb").HasConversion(
+                v => JsonSerializer.Serialize(v ?? new Dictionary<string, List<string>>(), jsonOptions),
+                v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, jsonOptions) ?? new Dictionary<string, List<string>>());
 
             // Seed data
             modelBuilder.Seed();
         }
     }
 }
-

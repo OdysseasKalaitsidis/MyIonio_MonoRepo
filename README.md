@@ -1,6 +1,6 @@
 # MyIonio Monorepo
 
-MyIonio is a containerized microservices platform engineered for academic management at Ionian University. The system automates real-time schedule management and academic profiling for a user base of approximately 4,000 students. The platform is built with a decoupled architecture to ensure independent scalability of the frontend, backend, and data processing layers.
+MyIonio is a focused student companion for Ionian University. It keeps the cafeteria menu, professor schedules, academic-direction evaluation, course reviews, and essential university links in one place.
 
 ## Preview
 
@@ -15,12 +15,11 @@ MyIonio is a containerized microservices platform engineered for academic manage
 
 ## Technical Architecture
 
-The system is deployed as a suite of five core microservices orchestrated via Docker Compose for production and raw Kubernetes manifests for future-state clustering.
+The system is deployed as a suite of four core services orchestrated via Docker Compose for production and raw Kubernetes manifests for future-state clustering.
 
 - **Frontend**: React 19 (TypeScript) SPA served via Nginx.
 - **Backend API**: ASP.NET Core 8.0 Web API implementing RESTful patterns and Entity Framework Core.
 - **AI Service**: Python/FastAPI microservice utilizing Large Language Models (LLMs) for unstructured schedule parsing.
-- **Messaging**: Apache Kafka event bus for asynchronous decoupling between the API and data processing services.
 - **Persistence**: PostgreSQL relational database with normalized schema design.
 
 ### System Infrastructure Diagram
@@ -35,8 +34,7 @@ graph TD
         Nginx --> FE[React Frontend]
         Nginx --> BE[.NET Backend API]
         BE --> DB[(PostgreSQL)]
-        BE --> Kafka{Kafka Event Bus}
-        Kafka --> AI[Python AI Service]
+        AI[Python AI Service] --> DB
     end
 
     subgraph "CI/CD Pipeline"
@@ -70,16 +68,28 @@ Infrastructure is managed through a hybrid approach:
 Requires Docker and Docker Compose.
 
 1. Clone the repository.
-2. Configure environment variables in `.env`.
+2. Copy `.env.example` to `.env` and replace every production secret. Keep `GRAFANA_ADMIN_PASSWORD` non-empty.
 3. Execute the build and start sequence:
    ```bash
    docker compose up -d --build
    ```
+4. Check local readiness:
+   ```bash
+   docker compose ps
+   curl -f http://localhost:8080/health
+   curl -f http://localhost:5001/api/health
+   ```
+
+### Required production configuration
+
+The VPS must provide `DB_CONNECTION`, `JWT_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`, and `GRAFANA_ADMIN_PASSWORD` through its private `.env` or secret manager.
+
+The frontend includes a lightweight installability baseline (`manifest.webmanifest`, service worker shell cache, and `/health`). The service worker is intentionally network-first and does not cache API responses or private student data.
 
 ### Repository Structure
 - `/Backend`: .NET 8 Web API source code.
 - `/Frontend`: React 19 / TypeScript source code.
-- `/ai-service`: Python FastAPI implementation.
+- `/MyIonio-AI`: Python FastAPI document-ingestion service.
 - `/k8s`: Kubernetes production manifests.
 - `/infra`: Jenkins configurations and environment scripts.
 

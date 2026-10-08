@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 import { ConsentProvider } from "./context/ConsentContext";
@@ -11,12 +11,9 @@ import ResultsPage from "./pages/ResultsPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import SchedulePage from "./pages/SchedulePage";
-import MenuPage from "./pages/MenuPage";
-import LibraryPage from "./pages/LibraryPage";
 import ExaminationPage from "./pages/ExaminationPage";
+import MenuPage from "./pages/MenuPage";
 import ProfessorsPage from "./pages/ProfessorsPage";
-import NotesPage from "./pages/NotesPage";
-import AdminPage from "./pages/AdminPage";
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
@@ -106,12 +103,10 @@ export function App() {
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schedule" element={<SchedulePage />} />
-          <Route path="/menu" element={<MenuPage />} />
-          <Route path="/library" element={<LibraryPage />} />
           <Route path="/exams" element={<ExaminationPage />} />
+          <Route path="/menu" element={<MenuPage />} />
           <Route path="/professors" element={<ProfessorsPage />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Router>
       </ConsentProvider>

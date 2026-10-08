@@ -1,14 +1,17 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { semesterIdFromValue } from './constants';
 
 interface PreferencesState {
   department: string | null;
   departmentId: number | null;
   semester: string | number | null;
+  semesterId: number | null;
   major: string | null;
   minor: string | null;
   toolbox: string[];
   hiddenCourses: string[];
-  selectedCourses: string[]; 
+  selectedCourses: string[];
+  selectedCoursesSemesterId: number | null;
   onboardingCompleted: boolean;
   isFirstVisit: boolean;
   isOnboardingOpen: boolean;
@@ -18,11 +21,17 @@ const initialState: PreferencesState = {
   department: localStorage.getItem('hud_department'),
   departmentId: localStorage.getItem('hud_departmentId') ? Number(localStorage.getItem('hud_departmentId')) : null,
   semester: localStorage.getItem('hud_semester') || null,
+  semesterId: localStorage.getItem('hud_semesterId')
+    ? Number(localStorage.getItem('hud_semesterId'))
+    : semesterIdFromValue(localStorage.getItem('hud_semester')),
   major: localStorage.getItem('hud_major'),
   minor: localStorage.getItem('hud_minor'),
   toolbox: JSON.parse(localStorage.getItem('hud_toolbox') || '[]'),
   hiddenCourses: JSON.parse(localStorage.getItem('hud_hiddenCourses') || '[]'),
   selectedCourses: JSON.parse(localStorage.getItem('hud_selectedCourses') || '[]'),
+  selectedCoursesSemesterId: localStorage.getItem('hud_selectedCoursesSemesterId')
+    ? Number(localStorage.getItem('hud_selectedCoursesSemesterId'))
+    : null,
   onboardingCompleted: localStorage.getItem('hud_onboardingCompleted') === 'true',
   isFirstVisit: !localStorage.getItem('hud_department'), 
   isOnboardingOpen: false,
@@ -32,15 +41,24 @@ export const preferencesSlice = createSlice({
   name: 'preferences',
   initialState,
   reducers: {
-    setPreferences: (state, action: PayloadAction<{ department: string; departmentId: number; semester: string | number }>) => {
+    setPreferences: (state, action: PayloadAction<{ department: string; departmentId: number; semester: string | number; semesterId?: number }>) => {
+      const nextSemesterId = action.payload.semesterId ?? semesterIdFromValue(action.payload.semester);
+      if (state.semesterId !== null && state.semesterId !== nextSemesterId) {
+        state.selectedCourses = [];
+        state.selectedCoursesSemesterId = null;
+        localStorage.removeItem('hud_selectedCourses');
+        localStorage.removeItem('hud_selectedCoursesSemesterId');
+      }
       state.department = action.payload.department;
       state.departmentId = action.payload.departmentId;
       state.semester = action.payload.semester;
+      state.semesterId = nextSemesterId;
       state.isFirstVisit = false;
       
       localStorage.setItem('hud_department', action.payload.department);
       localStorage.setItem('hud_departmentId', String(action.payload.departmentId));
       localStorage.setItem('hud_semester', String(action.payload.semester));
+      if (state.semesterId) localStorage.setItem('hud_semesterId', String(state.semesterId));
     },
     updateCoursePreferences: (state, action: PayloadAction<{ major?: string; minor?: string; toolbox?: string[] }>) => {
         if (action.payload.major !== undefined) state.major = action.payload.major;
@@ -59,7 +77,13 @@ export const preferencesSlice = createSlice({
     },
     setSelectedCourses: (state, action: PayloadAction<string[]>) => {
         state.selectedCourses = action.payload;
+        state.selectedCoursesSemesterId = state.semesterId;
         localStorage.setItem('hud_selectedCourses', JSON.stringify(state.selectedCourses));
+        if (state.selectedCoursesSemesterId) {
+          localStorage.setItem('hud_selectedCoursesSemesterId', String(state.selectedCoursesSemesterId));
+        } else {
+          localStorage.removeItem('hud_selectedCoursesSemesterId');
+        }
     },
     toggleCourse: (state, action: PayloadAction<string>) => {
         if (state.selectedCourses.includes(action.payload)) {
@@ -76,18 +100,23 @@ export const preferencesSlice = createSlice({
     clearPreferences: (state) => {
         state.department = null;
         state.semester = null;
+        state.semesterId = null;
         state.major = null;
         state.minor = null;
         state.toolbox = [];
         state.hiddenCourses = [];
+        state.selectedCourses = [];
+        state.selectedCoursesSemesterId = null;
         state.isFirstVisit = true;
         localStorage.removeItem('hud_department');
         localStorage.removeItem('hud_semester');
+        localStorage.removeItem('hud_semesterId');
         localStorage.removeItem('hud_major');
         localStorage.removeItem('hud_minor');
         localStorage.removeItem('hud_toolbox');
         localStorage.removeItem('hud_hiddenCourses');
         localStorage.removeItem('hud_selectedCourses');
+        localStorage.removeItem('hud_selectedCoursesSemesterId');
         localStorage.removeItem('hud_onboardingCompleted');
     },
     restorePreferences: (state) => {
@@ -96,6 +125,7 @@ export const preferencesSlice = createSlice({
         if (dept && sem) {
             state.department = dept;
             state.semester = sem;
+            state.semesterId = Number(localStorage.getItem('hud_semesterId')) || semesterIdFromValue(sem);
             state.isFirstVisit = false;
         }
         
@@ -104,13 +134,20 @@ export const preferencesSlice = createSlice({
         const toolbox = localStorage.getItem('hud_toolbox');
         const hidden = localStorage.getItem('hud_hiddenCourses');
         const selected = localStorage.getItem('hud_selectedCourses');
+        const selectedSemesterId = Number(localStorage.getItem('hud_selectedCoursesSemesterId')) || null;
         const completed = localStorage.getItem('hud_onboardingCompleted');
 
         if (major) state.major = major;
         if (minor) state.minor = minor;
         if (toolbox) state.toolbox = JSON.parse(toolbox);
         if (hidden) state.hiddenCourses = JSON.parse(hidden);
-        if (selected) state.selectedCourses = JSON.parse(selected);
+        if (selected && selectedSemesterId === state.semesterId) {
+            state.selectedCourses = JSON.parse(selected);
+            state.selectedCoursesSemesterId = selectedSemesterId;
+        } else {
+            state.selectedCourses = [];
+            state.selectedCoursesSemesterId = null;
+        }
         if (completed) state.onboardingCompleted = completed === 'true';
     },
     openOnboarding: (state) => {

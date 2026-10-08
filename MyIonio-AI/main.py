@@ -1,14 +1,14 @@
-import asyncio
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.controllers.schedule_controller import router as schedule_router
 from api.controllers.menu_controller import router as menu_router
 from pipeline.router import router as pipeline_router
-from kafka.consumer import run_consumer
-from kafka.notes_consumer import run_notes_consumer
+from pipeline.gemini_client import is_gemini_configured
 from db.pg_client import get_pool, close_pool
 from utils.logger import configure_logging
 
@@ -20,26 +20,18 @@ async def lifespan(app: FastAPI):
 
     On startup:
       - Initialises the PostgreSQL connection pool
-      - Starts Kafka consumers as background asyncio tasks
+      - Opens the PostgreSQL connection pool
 
     On shutdown:
-      - Cancels Kafka consumer tasks
+      - Closes database connections cleanly
       - Closes the PostgreSQL pool
     """
     # Warm up the PG pool so the first request isn't slow
     await get_pool()
 
-    kafka_task = asyncio.create_task(run_consumer())
-    notes_task = asyncio.create_task(run_notes_consumer())
 
     yield  # Application runs here
 
-    kafka_task.cancel()
-    notes_task.cancel()
-    try:
-        await asyncio.gather(kafka_task, notes_task)
-    except asyncio.CancelledError:
-        pass
 
     await close_pool()
 
@@ -48,7 +40,7 @@ app = FastAPI(title="MyIonio AI Service", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[origin.strip().rstrip("/") for origin in os.getenv("AI_ALLOWED_ORIGINS", "http://localhost:5173").split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,6 +56,16 @@ app.include_router(menu_router, prefix="/menu", tags=["Menu"])
 app.include_router(pipeline_router, prefix="/pipeline", tags=["Pipeline"])
 
 
+@app.get("/admin", include_in_schema=False)
+async def admin_page():
+    return FileResponse("admin/index.html", media_type="text/html")
+
+
+
 @app.get("/")
 def root():
-    return {"status": "MyIonio AI Service is running"}
+    return {
+        "status": "MyIonio AI Service is running",
+        "parser_configured": is_gemini_configured(),
+        "admin_url": "/admin",
+    }

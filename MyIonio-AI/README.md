@@ -39,7 +39,11 @@ The service utilizes the **Google Gemini 2.0 Flash** model to handle the inheren
 Create a `.env` file in the `MyIonio-AI` directory:
 ```env
 GEMINI_API_KEY=your_api_key_here
+ENVIRONMENT=development
+AI_ALLOWED_ORIGINS=http://localhost:5173
 ```
+
+In deployment, set `ENVIRONMENT=production` and provide `AI_ALLOWED_ORIGINS` as a comma-separated list of trusted frontend origins.
 
 ### Running Locally
 ```bash

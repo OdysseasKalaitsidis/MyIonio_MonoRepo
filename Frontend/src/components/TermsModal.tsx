@@ -6,7 +6,7 @@ interface TermsModalProps {
   confirmLabel?: string;
 }
 
-export function TermsModal({ isOpen, onClose, confirmLabel = "I Understand" }: TermsModalProps) {
+export function TermsModal({ isOpen, onClose, confirmLabel = "Κατάλαβα" }: TermsModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -15,41 +15,41 @@ export function TermsModal({ isOpen, onClose, confirmLabel = "I Understand" }: T
         {/* Header */}
         <div className="p-6 border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 backdrop-blur-md">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Terms and Conditions
+            Όροι και προϋποθέσεις
           </h2>
         </div>
 
         {/* Content */}
         <div className="flex-1 p-6 overflow-y-auto space-y-4 text-slate-600 dark:text-gray-300">
-            <strong className="text-slate-900 dark:text-white">Last Updated: {new Date().toLocaleDateString()}</strong>
+            <strong className="text-slate-900 dark:text-white">Τελευταία ενημέρωση: {new Date().toLocaleDateString("el-GR")}</strong>
           <p>
-            Welcome to Ionio Portal. By signing up, you agree to the following terms
-            and conditions. Please read them carefully.
+            Καλώς ήρθες στο MyIonio. Με την εγγραφή σου αποδέχεσαι τους παρακάτω όρους
+            και προϋποθέσεις. Διάβασέ τους προσεκτικά.
           </p>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">1. Age Requirement</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">1. Ηλικιακό όριο</h3>
           <p>
-            You must be at least 16 years old to use this service. By creating an account, you represent and warrant that you meet this age requirement.
+            Πρέπει να είσαι τουλάχιστον 16 ετών για να χρησιμοποιήσεις την υπηρεσία. Με τη δημιουργία λογαριασμού δηλώνεις ότι πληροίς αυτή την προϋπόθεση.
           </p>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">2. Non-Commercial Use</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">2. Μη εμπορική χρήση</h3>
           <p>
-            The Ionio Portal is provided for <strong>educational and personal academic use only</strong>. Any commercial use, enterprise deployment, or resale of this service is strictly prohibited.
+            Το MyIonio παρέχεται αποκλειστικά για <strong>εκπαιδευτική και προσωπική ακαδημαϊκή χρήση</strong>. Απαγορεύεται αυστηρά κάθε εμπορική χρήση, εταιρική ανάπτυξη ή μεταπώληση της υπηρεσίας.
           </p>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">3. User Conduct</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">3. Συμπεριφορά χρήστη</h3>
           <p>
-            You agree not to modify, hack, or attempt to compromise the security of the application. Harassment, bullying, or uploading illegal content will result in immediate termination of your account.
+            Συμφωνείς να μην τροποποιείς, παραβιάζεις ή επιχειρείς να θέσεις σε κίνδυνο την ασφάλεια της εφαρμογής. Η παρενόχληση, ο εκφοβισμός ή η ανάρτηση παράνομου περιεχομένου οδηγούν σε άμεση διακοπή του λογαριασμού σου.
           </p>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">4. Termination</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">4. Τερματισμός</h3>
           <p>
-            We reserve the right to suspend or terminate your account at our sole discretion, without notice, for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties, or for any other reason.
+            Διατηρούμε το δικαίωμα να αναστείλουμε ή να τερματίσουμε τον λογαριασμό σου, κατά την απόλυτη κρίση μας και χωρίς προειδοποίηση, για συμπεριφορά που θεωρούμε ότι παραβιάζει τους όρους ή βλάπτει άλλους χρήστες, εμάς ή τρίτους.
           </p>
 
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">5. Disclaimer of Warranties</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-4">5. Αποποίηση εγγυήσεων</h3>
           <p>
-            The service is provided on an "AS IS" and "AS AVAILABLE" basis. We disclaim all warranties of any kind, whether express or implied. We do not guarantee that the service will be uninterrupted, timely, secure, or error-free. You use the service at your own risk.
+            Η υπηρεσία παρέχεται «ΩΣ ΕΧΕΙ» και «ΟΠΩΣ ΕΙΝΑΙ ΔΙΑΘΕΣΙΜΗ». Δεν παρέχουμε καμία ρητή ή έμμεση εγγύηση. Δεν εγγυόμαστε ότι η υπηρεσία θα είναι αδιάλειπτη, έγκαιρη, ασφαλής ή χωρίς σφάλματα. Τη χρησιμοποιείς με δική σου ευθύνη.
           </p>
         </div>
 

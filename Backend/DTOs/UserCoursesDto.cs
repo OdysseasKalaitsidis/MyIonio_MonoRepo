@@ -6,6 +6,7 @@ namespace MyIonio.DTOs
     {
         public string Semester { get; set; }
         public List<string> Courses { get; set; }
+        public List<string>? CourseIds { get; set; }
         public string? Major { get; set; }
         public string? Minor { get; set; }
     }

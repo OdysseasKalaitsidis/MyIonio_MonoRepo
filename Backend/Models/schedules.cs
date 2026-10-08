@@ -7,9 +7,9 @@ namespace MyIonio.Models
         public string department { get; set; }
         public int DepartmentId { get; set; }
         public string semester {  get; set; }
+        public int SemesterId { get; set; }
         public string academic_year { get; set; }
         public string period { get; set; }
         public List<CourseEntry> courses { get; set; }
     }
 }
-

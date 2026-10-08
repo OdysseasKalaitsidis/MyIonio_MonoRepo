@@ -38,7 +38,7 @@ export function ScheduleCard() {
         <div className="flex justify-between items-start mb-1">
           <div className="flex items-center gap-2 text-ionian-blue dark:text-blue-400">
             <Calendar size={20} />
-            <span className="text-sm font-bold uppercase tracking-widest text-ionian-blue dark:text-blue-400">Today's Classes</span>
+            <span className="text-sm font-bold uppercase tracking-widest text-ionian-blue dark:text-blue-400">Σημερινά μαθήματα</span>
           </div>
           {hasPreferences && (
             <button
@@ -59,20 +59,20 @@ export function ScheduleCard() {
         <div className="flex-1 flex flex-col">
           {!hasPreferences ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center -mt-6">
-              <p className="text-base text-slate-500 dark:text-gray-400 font-medium mb-6">No semester selected</p>
+              <p className="text-base text-slate-500 dark:text-gray-400 font-medium mb-6">Δεν έχει επιλεγεί εξάμηνο</p>
               <button
                 onClick={(e) => { e.stopPropagation(); setIsPickerOpen(true); }}
                 className="bg-ionian-blue hover:bg-blue-600 text-white px-6 py-3 text-base rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20"
               >
-                Set up Schedule
+                Ρύθμισε το πρόγραμμά σου
               </button>
             </div>
           ) : (
             <div className="w-full flex flex-col gap-4">
               {isLoading ? (
-                <p className="text-slate-500 dark:text-gray-400 text-sm animate-pulse">Loading schedule...</p>
+                <p className="text-slate-500 dark:text-gray-400 text-sm animate-pulse">Φόρτωση προγράμματος…</p>
               ) : error ? (
-                <p className="text-slate-500 dark:text-gray-400 text-sm">Could not load classes</p>
+                <p className="text-slate-500 dark:text-gray-400 text-sm">Δεν ήταν δυνατή η φόρτωση των μαθημάτων</p>
               ) : todaysCourses.length > 0 ? (
                 <>
                   {todaysCourses.slice(0, 2).map((course, idx) => (
@@ -89,14 +89,14 @@ export function ScheduleCard() {
                   
                   {todaysCourses.length > 2 && (
                     <div className="mt-2 bg-gray-50 dark:bg-white/5 rounded-xl p-3 text-center border border-dashed border-gray-200 dark:border-white/10">
-                       <p className="text-xs font-semibold text-slate-400 dark:text-gray-400">+{todaysCourses.length - 2} more classes</p>
+                       <p className="text-xs font-semibold text-slate-400 dark:text-gray-400">+{todaysCourses.length - 2} ακόμη μαθήματα</p>
                     </div>
                   )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-4">
-                  <p className="text-slate-500 dark:text-gray-400 text-base font-medium">No classes scheduled for today.</p>
-                  <p className="text-slate-400 dark:text-gray-500 text-sm mt-1">Enjoy your free time!</p>
+                  <p className="text-slate-500 dark:text-gray-400 text-base font-medium">Δεν υπάρχουν μαθήματα σήμερα.</p>
+                  <p className="text-slate-400 dark:text-gray-500 text-sm mt-1">Απόλαυσε τον ελεύθερο χρόνο σου!</p>
                 </div>
               )}
             </div>
@@ -106,7 +106,7 @@ export function ScheduleCard() {
         {/* Footer Link */}
         <div className="mt-auto pt-4 border-t border-gray-100 dark:border-white/5 flex justify-center">
             <div className="flex items-center gap-1 text-sm font-semibold text-slate-500 dark:text-gray-400 group-hover:text-ionian-blue dark:group-hover:text-blue-400 transition-colors">
-              <span>View Full Schedule</span>
+              <span>Δες ολόκληρο το πρόγραμμα</span>
               <ChevronRight size={16} />
             </div>
         </div>

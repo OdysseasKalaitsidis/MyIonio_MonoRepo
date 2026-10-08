@@ -6,6 +6,11 @@ To add a new document type:
   2. Add an entry to SCHEMA_REGISTRY below.
 """
 
+from schemas.curriculum_catalog import (
+    CURRICULUM_CATALOG_SCHEMA,
+    CurriculumCatalogOutput,
+    build_curriculum_prompt,
+)
 from schemas.exam_schedule import (
     EXAM_SCHEDULE_SCHEMA,
     ExamScheduleOutput,
@@ -21,9 +26,16 @@ from schemas.class_schedule_split import (
     ClassScheduleSplitOutput,
     build_class_split_prompt,
 )
-from db.pg_client import upsert_exam_schedule, upsert_class_schedule
+from db.pg_client import upsert_course_catalog, upsert_exam_schedule, upsert_class_schedule
 
 SCHEMA_REGISTRY: dict[str, dict] = {
+    "curriculum_catalog": {
+        "description": "Πρόγραμμα Σπουδών — κατευθύνσεις, minor και toolboxes",
+        "prompt_builder": build_curriculum_prompt,
+        "gemini_schema": CURRICULUM_CATALOG_SCHEMA,
+        "pydantic_model": CurriculumCatalogOutput,
+        "db_writer": upsert_course_catalog,
+    },
     "exam_schedule": {
         "description": "Πρόγραμμα Εξετάσεων (flat table)",
         "prompt_builder": build_exam_prompt,

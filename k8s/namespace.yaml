@@ -10,4 +10,3 @@ metadata:
   namespace: myionio-prod
 data:
   DB_HOST: "myionio-db-service"
-  KAFKA_BROKER: "myionio-kafka-service:9092"

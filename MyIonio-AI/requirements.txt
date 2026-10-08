@@ -4,10 +4,9 @@ python-multipart
 pymupdf
 loguru
 python-dotenv
-openai
 supabase
 pydantic>=2.0
 pypdf
-confluent-kafka
 asyncpg
 google-genai
+google-generativeai
