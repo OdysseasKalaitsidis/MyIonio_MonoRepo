@@ -11,6 +11,11 @@ import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 
 const WEEK_ORDER = ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"];
+const normalizeDay = (day: string) => day
+  .trim()
+  .normalize("NFD")
+  .replace(/\p{M}/gu, "")
+  .toLocaleLowerCase("el-GR");
 
 export default function SchedulePage() {
   const navigate = useNavigate();
@@ -31,7 +36,7 @@ export default function SchedulePage() {
   const { courses, isLoading, currentCourse } = useCurrentSchedule();
 
   // Filter courses for the selected day in Daily view
-  const displayCourses = courses.filter(c => c.day === selectedDay);
+  const displayCourses = courses.filter(c => normalizeDay(c.day) === normalizeDay(selectedDay));
 
   return (
     <PageLayout>
@@ -261,6 +266,4 @@ function DailyView({
     </motion.div>
   );
 }
-
-
 

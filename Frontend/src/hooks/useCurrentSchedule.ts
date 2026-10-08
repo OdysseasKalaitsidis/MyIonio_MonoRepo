@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../app/store";
 import type { CourseEntry } from "../features/schedule/models";
 import { getSchedule } from "../features/schedule/api";
-import { DEPARTMENT_MAP } from "../features/preferences/constants";
+import { DEPARTMENT_ID_MAP, DEPARTMENT_MAP } from "../features/preferences/constants";
 
 const DAY_MAP: Record<number, string> = {
   0: "Κυριακή",
@@ -17,7 +17,7 @@ const DAY_MAP: Record<number, string> = {
 
 export function useCurrentSchedule() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { department, departmentId, semester, selectedCourses } = useSelector((state: RootState) => state.preferences);
+  const { department, departmentId, semester, semesterId, selectedCourses, selectedCoursesSemesterId } = useSelector((state: RootState) => state.preferences);
   const [courses, setCourses] = useState<CourseEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,35 +34,23 @@ export function useCurrentSchedule() {
     const fetchCourses = async () => {
       try {
         const deptParam = DEPARTMENT_MAP[department] || department;
+        const finalDepartmentId = departmentId ?? DEPARTMENT_ID_MAP[department] ?? DEPARTMENT_ID_MAP[deptParam];
         
-        const semesterMap: Record<string, string> = {
-          "1": "Α",
-          "2": "Β",
-          "3": "Γ",
-          "4": "Δ",
-          "5": "Ε",
-          "6": "ΣΤ",
-          "7": "Ζ",
-          "8": "Η",
-        };
+        const finalSemester = String(semester);
 
-        const semKey = String(semester);
-        const semParam = semesterMap[semKey];
-        const finalSemester = semParam || String(semester);
-
-        console.log("📅 Fetching Schedule with:", { department: deptParam, departmentId, semester: finalSemester, isAuthenticated });
+        console.log("📅 Fetching Schedule with:", { department: deptParam, departmentId: finalDepartmentId, semesterId, semester: finalSemester, isAuthenticated });
 
         let data: import("../features/schedule/api").ScheduleResponseDto[];
         
         if (isAuthenticated) {
              console.log("[DEBUG] Fetching authenticated schedule (Using specialized user API)");
              data = await import("../features/schedule/api").then(api => 
-                api.getUserSchedule({ department: deptParam, departmentId: departmentId ?? undefined, semester: finalSemester })
+                api.getUserSchedule({ department: deptParam, departmentId: finalDepartmentId, semesterId: semesterId ?? undefined, semester: finalSemester })
              );
         } else {
-             const publicSchedule = await getSchedule({ department: deptParam, departmentId: departmentId ?? undefined, semester: finalSemester });
+             const publicSchedule = await getSchedule({ department: deptParam, departmentId: finalDepartmentId, semesterId: semesterId ?? undefined, semester: finalSemester });
              
-             if (selectedCourses && selectedCourses.length > 0) {
+             if (selectedCoursesSemesterId === semesterId && selectedCourses.length > 0) {
                   data = publicSchedule.filter(c => selectedCourses.includes(c.course_name));
              } else {
                   data = publicSchedule;
@@ -79,7 +67,12 @@ export function useCurrentSchedule() {
                 time_end: d.time_end?.slice(0, 5) ?? "",
                 professor: d.professor,
                 course_name: d.course_name,
-                type: d.type
+                type: d.type,
+                course_id: d.course_id,
+                delivery_type: d.delivery_type,
+                schedule_track: d.schedule_track,
+                roles: d.roles,
+                toolboxes: d.toolboxes
             }));
             setCourses(mapped);
             setError(null);
@@ -97,7 +90,7 @@ export function useCurrentSchedule() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, department, semester, selectedCourses]);
+  }, [isAuthenticated, department, departmentId, semester, semesterId, selectedCourses, selectedCoursesSemesterId]);
 
   const todaysCourses = useMemo(() => {
     const todayIndex = new Date().getDay();

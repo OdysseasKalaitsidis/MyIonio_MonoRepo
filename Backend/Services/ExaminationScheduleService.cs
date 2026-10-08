@@ -21,8 +21,8 @@ namespace MyIonio.Services
             // Or maybe replace if exists?
             
             var existing = await _context.ExaminationSchedules
-                .FirstOrDefaultAsync(s => s.Department == schedule.Department 
-                                       && s.Semester == schedule.Semester);
+                .FirstOrDefaultAsync(s => s.DepartmentId == schedule.DepartmentId
+                                       && s.SemesterId == schedule.SemesterId);
 
             if (existing != null)
             {
@@ -68,4 +68,3 @@ namespace MyIonio.Services
         }
     }
 }
-

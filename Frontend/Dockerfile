@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:20-alpine AS build
+FROM public.ecr.aws/docker/library/node:20-alpine AS build
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -11,14 +11,16 @@ COPY . .
 
 # Pass build arguments to Vite
 ARG VITE_API_URL
+ARG VITE_AI_URL
 ARG VITE_GOOGLE_CLIENT_ID
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_AI_URL=$VITE_AI_URL
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 RUN npm run build
 
 # Final Stage: Serve with Nginx
-FROM nginx:alpine
+FROM public.ecr.aws/docker/library/nginx:alpine
 RUN apk add --no-cache curl
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf

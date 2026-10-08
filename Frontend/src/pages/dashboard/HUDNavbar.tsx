@@ -58,7 +58,7 @@ export function HUDNavbar() {
           <Menu as="div" className="relative">
             <Menu.Button className="flex items-center gap-2 bg-white dark:bg-glass-blue border border-slate-200 dark:border-white/10 rounded-full pl-4 pr-1 py-1 backdrop-blur-md transition-colors shadow-sm hover:bg-slate-50 dark:hover:bg-white/10 outline-none">
               <span className="text-sm font-medium text-slate-700 dark:text-gray-200 hidden sm:block">
-                {user?.email || "Student"}
+                {user?.email || "Φοιτητής"}
               </span>
               <div className="w-8 h-8 rounded-full bg-ionian-blue/10 dark:bg-ionian-blue/20 flex items-center justify-center border border-ionian-blue/20 dark:border-ionian-blue/50 text-ionian-blue">
                  <User size={16} />
@@ -87,7 +87,7 @@ export function HUDNavbar() {
                         } group flex w-full items-center rounded-lg px-2 py-2 text-sm transition-colors`}
                       >
                         <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-                        Sign Out
+                        Αποσύνδεση
                       </button>
                     )}
                   </Menu.Item>
@@ -101,13 +101,13 @@ export function HUDNavbar() {
                 onClick={() => navigate("/signin")}
                 className="text-sm font-medium text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white transition-colors"
              >
-                Sign In
+                Σύνδεση
              </button>
              <button 
                 onClick={() => navigate("/sign-up")}
                 className="px-4 py-2 rounded-full bg-ionian-blue text-white text-sm font-medium hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
              >
-                Sign Up
+                Εγγραφή
              </button>
           </div>
         )}

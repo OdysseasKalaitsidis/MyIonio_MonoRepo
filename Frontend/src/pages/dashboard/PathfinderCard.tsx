@@ -22,20 +22,20 @@ export function PathfinderCard({ onClick, className = "" }: PathfinderCardProps)
           <div className="flex justify-between items-start">
              <div className="flex items-center gap-2 text-slate-500 dark:text-gray-400 transition-colors">
                 <Compass size={18} />
-                <span className="text-sm font-medium uppercase tracking-widest">Pathfinder</span>
+                <span className="text-sm font-medium uppercase tracking-widest">Οδηγός κατεύθυνσης</span>
             </div>
-            <div className="bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold px-2 py-1 rounded">Beta</div>
+            <div className="bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold px-2 py-1 rounded">Δοκιμαστικό</div>
           </div>
 
           <div className="mt-4">
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">Unsure about your major?</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">Δεν είσαι σίγουρος για την κατεύθυνσή σου;</h3>
               <p className="text-slate-500 dark:text-gray-400 leading-relaxed transition-colors">
-                  Take the 5-minute AI career path test to discover your ideal specialization.
+                  Κάνε το τεστ 5 λεπτών για να ανακαλύψεις την ιδανική σου κατεύθυνση.
               </p>
           </div>
 
           <div className="flex items-center gap-2 text-slate-800 dark:text-white font-medium group-hover:gap-4 transition-all">
-              <span>Start Analysis</span>
+              <span>Ξεκίνα την αξιολόγηση</span>
               <ArrowRight size={18} />
           </div>
 

@@ -16,13 +16,18 @@ from loguru import logger
 from google import genai
 from google.genai import types
 
-MODEL = "gemini-2.0-flash"
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+
+def is_gemini_configured() -> bool:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    return bool(api_key) and "placeholder" not in api_key.casefold() and api_key != "changeme"
 
 
 def _get_client() -> genai.Client:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY environment variable is not set.")
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not is_gemini_configured():
+        raise RuntimeError("AI parser is not configured. Set GEMINI_API_KEY to enable PDF parsing.")
     return genai.Client(api_key=api_key)
 
 
@@ -111,7 +116,8 @@ def _extract_sync(
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Gemini returned non-JSON response: {e}") from e
     except Exception as e:
-        logger.exception(f"Gemini extraction failed: {e}")
+        # Do not log SDK exception details: request objects may contain the API key.
+        logger.error("Gemini extraction failed ({})", type(e).__name__)
         raise
     finally:
         # ── 4. Always clean up uploaded files ─────────────────────────────

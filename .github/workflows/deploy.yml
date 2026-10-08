@@ -3,6 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -39,9 +40,21 @@ jobs:
       - name: Backend Build check
         run: dotnet build --no-restore
         working-directory: ./Backend
-      - name: Run Backend Tests
-        run: dotnet test --no-build --verbosity normal
+      - name: Restore Backend Tests
+        run: dotnet restore
         working-directory: ./Backend.Tests
+      - name: Run Backend Tests
+        run: dotnet test --no-restore --verbosity normal
+        working-directory: ./Backend.Tests
+
+      # AI service syntax check (dependency installation belongs to the image build)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: AI syntax check
+        run: python -m compileall -q .
+        working-directory: ./MyIonio-AI
 
   build-backend:
     name: Build & Push Backend
@@ -105,6 +118,8 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=https://api.myionio.site/api
+            VITE_AI_URL=https://ai.myionio.site
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   build-ai:
@@ -147,16 +162,40 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 10m
           script: |
+            set -eu
             cd ${{ secrets.SERVER_PATH }}
-            
-            # Update source code
+
+            # Production configuration is managed manually on the VPS.
+            test -f .env || { echo "Missing production .env"; exit 1; }
+            for name in DB_CONNECTION DB_PASSWORD JWT_KEY GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GEMINI_API_KEY SUPABASE_URL SUPABASE_KEY; do
+              sudo grep -Eq "^${name}=.+$" .env || { echo "Missing required production variable: ${name}"; exit 1; }
+            done
+
+            # Back up PostgreSQL before replacing containers or applying migrations.
+            sudo docker compose up -d db
+            sudo mkdir -p .deploy-backups
+            backup_tmp=$(mktemp)
+            sudo docker compose exec -T db pg_dump -U postgres -d postgres -Fc > "${backup_tmp}"
+            sudo mv "${backup_tmp}" ".deploy-backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).dump"
+
+            # Update source code. The ignored production .env remains untouched.
             sudo git fetch origin master
             sudo git reset --hard origin/master
-            
-            # Note: .env is now managed manually on the VPS to prevent overwriting
-            
-            # Login and Pull
+
+            # Pull the verified build output from GHCR and replace only application services.
             echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            sudo docker compose pull db backend frontend
-            sudo docker compose up -d db backend frontend
+            sudo docker compose pull db backend frontend ai-service
+            sudo docker compose up -d --remove-orphans db backend frontend ai-service
+            sudo docker compose ps --status running db backend frontend ai-service
+
+            # Wait for public routes instead of racing container startup/migrations.
+            for url in https://myionio.site/health https://api.myionio.site/api/health https://ai.myionio.site/; do
+              healthy=false
+              for attempt in $(seq 1 30); do
+                if curl --fail --silent --show-error "${url}" > /dev/null; then healthy=true; break; fi
+                sleep 5
+              done
+              test "${healthy}" = true || { echo "Health check failed: ${url}"; exit 1; }
+            done
+
             sudo docker image prune -f

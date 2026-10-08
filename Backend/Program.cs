@@ -1,6 +1,5 @@
 using MyIonio;
 using MyIonio.Auth.Services;
-using MyIonio.Kafka;
 using MyIonio.Services;
 using MyIonio.Data;
 using MyIonio.Interfaces;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using OpenAI;
 using Microsoft.AspNetCore.RateLimiting;
 using Prometheus;
 
@@ -47,12 +45,6 @@ builder.Services.AddSwaggerGen();
 // JWT Configuration
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-// External Services
-builder.Services.AddSingleton(_ =>
-{
-    var apiKey = builder.Configuration["OpenAI:ApiKey"];
-    return new OpenAIClient(apiKey);
-});
 
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
@@ -121,6 +113,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim(System.Security.Claims.ClaimTypes.Role, "Admin"));
+});
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -132,11 +129,11 @@ builder.Services.AddCors(options =>
         foreach (var origin in origins)
         {
             var trimmed = origin.Trim().TrimEnd('/');
-            finalOrigins.Add(trimmed);
-            finalOrigins.Add(trimmed + "/");
+            if (!string.IsNullOrWhiteSpace(trimmed))
+                finalOrigins.Add(trimmed);
         }
 
-        policy.WithOrigins("https://myionio.site", "http://myionio.site", "http://localhost:5173")
+        policy.WithOrigins(finalOrigins.ToArray())
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -153,12 +150,6 @@ builder.Services.AddScoped<IExaminationScheduleService, ExaminationScheduleServi
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 
-// Application Services
-builder.Services.AddScoped<INotesService, NotesService>();
-
-// Kafka Producer & Consumer Services
-builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
-builder.Services.AddHostedService<KafkaConsumerService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

@@ -12,6 +12,7 @@ namespace MyIonio.Models
         public int DepartmentId { get; set; }
         
         public string Semester { get; set; }
+        public int SemesterId { get; set; }
         
         public string Period { get; set; }
 
@@ -21,6 +22,9 @@ namespace MyIonio.Models
 
     public class ExamItem
     {
+        [JsonPropertyName("course_id")]
+        public string CourseId { get; set; } = string.Empty;
+
         [JsonPropertyName("date")]
         public string Date { get; set; } = string.Empty;
 
@@ -40,4 +44,3 @@ namespace MyIonio.Models
         public List<string> Professors { get; set; } = new List<string>();
     }
 }
-

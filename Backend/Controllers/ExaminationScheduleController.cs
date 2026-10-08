@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using MyIonio.Helpers;
 
 namespace MyIonio.Controllers
 {
@@ -20,9 +21,11 @@ namespace MyIonio.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string? department, [FromQuery] string? semester)
+        public async Task<IActionResult> Get([FromQuery] string? department, [FromQuery] string? semester,
+            [FromQuery] int? semesterId = null)
         {
-            var schedules = await _service.GetSchedulesAsync(department, semester);
+            var requestedSemester = semesterId.HasValue ? CourseEligibility.SemesterCode(semesterId.Value) : semester;
+            var schedules = await _service.GetSchedulesAsync(department, requestedSemester);
             return Ok(schedules);
         }
 
@@ -34,13 +37,19 @@ namespace MyIonio.Controllers
                 return BadRequest("Invalid data");
             }
 
+            var semesterId = dto.SemesterId ?? CourseEligibility.SemesterId(dto.Semester);
+            if (semesterId is < 1 or > 8) return BadRequest("A valid semesterId (1-8) is required.");
+
             var schedule = new ExaminationSchedule
             {
                 Department = dto.Department ?? "Τμήμα Πληροφορικής",
-                Semester = dto.Semester ?? "1", // Default if not provided
+                DepartmentId = dto.DepartmentId ?? 1,
+                Semester = CourseEligibility.SemesterCode(semesterId),
+                SemesterId = semesterId,
                 Period = dto.Period,
                 Exams = dto.Exams.Select(e => new ExamItem
                 {
+                    CourseId = e.CourseId,
                     Date = e.Date,
                     Room = e.Room,
                     TimeStart = e.TimeStart,
@@ -59,9 +68,15 @@ namespace MyIonio.Controllers
     {
         [JsonPropertyName("department")]
         public string Department { get; set; }
+
+        [JsonPropertyName("departmentId")]
+        public int? DepartmentId { get; set; }
         
         [JsonPropertyName("semester")]
         public string Semester { get; set; }
+
+        [JsonPropertyName("semesterId")]
+        public int? SemesterId { get; set; }
         
         [JsonPropertyName("period")]
         public string Period { get; set; }
@@ -72,6 +87,9 @@ namespace MyIonio.Controllers
 
     public class ExamItemRequestDto
     {
+        [JsonPropertyName("course_id")]
+        public string CourseId { get; set; } = string.Empty;
+
         [JsonPropertyName("date")]
         public string Date { get; set; }
 
@@ -91,4 +109,3 @@ namespace MyIonio.Controllers
         public List<string> Professors { get; set; }
     }
 }
-

@@ -19,8 +19,6 @@ spec:
         ports:
         - containerPort: 8000
         env:
-        - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka-service:9092"
         - name: BACKEND_URL
           value: "http://backend-service"
 ---

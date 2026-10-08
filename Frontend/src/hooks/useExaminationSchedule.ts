@@ -5,7 +5,7 @@ import { getExaminationSchedule, type ExamItem } from "../features/schedule/api"
 
 
 export function useExaminationSchedule() {
-  const { department, semester, departmentId } = useSelector((state: RootState) => state.preferences);
+  const { department, semester, semesterId, departmentId } = useSelector((state: RootState) => state.preferences);
   
   const [schedule, setSchedule] = useState<ExamItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +27,8 @@ export function useExaminationSchedule() {
             if (departmentId && semester) {
                 // Find the matching schedule by DepartmentId
                 const match = data.find(s => {
-                    return s.departmentId === departmentId && s.semester == semester;
+                    return s.departmentId === departmentId &&
+                        (semesterId ? s.semesterId === semesterId : s.semester == semester);
                 });
 
                 console.log('📚 Match found by ID:', match);
@@ -50,7 +51,7 @@ export function useExaminationSchedule() {
     return () => {
       isMounted = false;
     };
-  }, [department, semester]);
+  }, [department, departmentId, semester, semesterId]);
 
   return {
     schedule,

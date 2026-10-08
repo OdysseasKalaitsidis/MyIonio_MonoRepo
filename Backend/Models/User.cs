@@ -32,8 +32,9 @@ namespace MyIonio.Models
 
         public ICollection<UserRecommendation> Recommendations { get; set; } = new List<UserRecommendation>();
 
-        // Stores courses per semester: Key = Semester (e.g., "A", "”‘"), Value = List of Course IDs
+        // Stores courses per semester: Key = Semester (e.g., "A", "Œ£Œ§"), Value = List of Course IDs
         public Dictionary<string, List<string>> EnrolledCourses { get; set; } = new Dictionary<string, List<string>>();
+        public Dictionary<string, List<string>> EnrolledCourseIds { get; set; } = new Dictionary<string, List<string>>();
 
     }
 }

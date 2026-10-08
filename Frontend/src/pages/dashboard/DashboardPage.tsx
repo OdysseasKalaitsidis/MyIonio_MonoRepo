@@ -1,44 +1,34 @@
 import { useEffect, useState } from "react";
 import { HUDNavbar } from "./HUDNavbar";
 import { FuelCard } from "./RestaurantCard";
-import { ScheduleCard } from "./ScheduleCard";
 import { PathfinderCard } from "./PathfinderCard";
-import { useDispatch, useSelector } from "react-redux";
-import { restorePreferences } from "../../features/preferences/preferencesSlice";
+import { useSelector } from "react-redux";
 import { TermsModal } from "../../components/TermsModal";
 import { useNavigate } from "react-router-dom";
 import { LockKeyholeOpen, ArrowRight, BookOpen, Globe, GraduationCap } from "lucide-react";
 import type { RootState } from "../../app/store";
-import { QuickPickerModal } from "./QuickPickerModal";
-import { ExamCard } from "./ExamCard";
-import { LibraryCard } from "./LibraryCard";
 import { ProfessorsCard } from "./ProfessorsCard";
-import { NotesCard } from "./NotesCard";
+import { ScheduleCard } from "./ScheduleCard";
+import { ExamCard } from "./ExamCard";
 
 export default function DashboardPage() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   
-  const [greeting, setGreeting] = useState("Good Day");
+  const [greeting, setGreeting] = useState("Καλημέρα");
   const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const [showQuickPicker, setShowQuickPicker] = useState(false);
 
 
 
-  // Initialize Preferences
-  useEffect(() => {
-    dispatch(restorePreferences());
-  }, [dispatch]);
 
   // Dynamic Greeting
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good Morning");
-    else if (hour < 18) setGreeting("Good Afternoon");
-    else setGreeting("Good Evening");
+    if (hour < 12) setGreeting("Καλημέρα");
+    else if (hour < 18) setGreeting("Καλό απόγευμα");
+    else setGreeting("Καλησπέρα");
   }, []);
 
   return (
@@ -50,18 +40,15 @@ export default function DashboardPage() {
         {/* Hero / Greeting */}
         <div className="mt-8 mb-12">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white transition-colors">
-                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-ionian-blue to-blue-400">{isAuthenticated && user?.firstName ? user.firstName : "Student"}.</span>
+                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-ionian-blue to-blue-400">{isAuthenticated && user?.firstName ? user.firstName : "φοιτητή"}.</span>
             </h2>
-            <p className="text-slate-500 dark:text-gray-400 text-lg transition-colors">Here is what's happening at IU today.</p>
+            <p className="text-slate-500 dark:text-gray-400 text-lg transition-colors">Λέσχη, πρόγραμμα μαθημάτων και εξετάσεων, καθηγητές, αξιολόγηση και χρήσιμοι σύνδεσμοι.</p>
         </div>
 
         {/* The Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
             <ScheduleCard />
             <FuelCard />
-            <NotesCard />
-            
-            {/* Full Span: Professors Banner */}
             <div className="col-span-1 lg:col-span-2">
                 <ProfessorsCard />
             </div>
@@ -99,10 +86,10 @@ export default function DashboardPage() {
 
                      <div className="mt-8">
                          <h3 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">
-                             View Results
+                             Δες τα αποτελέσματα
                          </h3>
                          <p className="text-sm text-slate-600 dark:text-gray-300">
-                             Check your personalized academic path.
+                             Δες την εξατομικευμένη ακαδημαϊκή σου πορεία.
                          </p>
                      </div>
 
@@ -114,10 +101,9 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Exam & Library Row */}
+
             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ExamCard />
-                <LibraryCard />
             </div>
 
             {/* Quick Links Row (Dias, E-Class, Eudoxus) - Approx 70% height/size */}
@@ -140,7 +126,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-ionian-blue transition-colors">Dias</h3>
-                             <p className="text-sm text-slate-500 dark:text-gray-400">Student Services</p>
+                             <p className="text-sm text-slate-500 dark:text-gray-400">Φοιτητικές υπηρεσίες</p>
                         </div>
                     </div>
                 </a>
@@ -162,7 +148,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">OpenCourses</h3>
-                             <p className="text-sm text-slate-500 dark:text-gray-400">Asynchronous Education</p>
+                             <p className="text-sm text-slate-500 dark:text-gray-400">Ασύγχρονη εκπαίδευση</p>
                         </div>
                     </div>
                 </a>
@@ -184,7 +170,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">Eudoxus</h3>
-                             <p className="text-sm text-slate-500 dark:text-gray-400">University Books</p>
+                             <p className="text-sm text-slate-500 dark:text-gray-400">Πανεπιστημιακά συγγράμματα</p>
                         </div>
                     </div>
                 </a>
@@ -196,11 +182,7 @@ export default function DashboardPage() {
        <TermsModal
         isOpen={isTermsOpen}
         onClose={() => navigate("/quiz")}
-        confirmLabel="Start Assessment"
-       />
-       <QuickPickerModal 
-        isOpen={showQuickPicker} 
-        onClose={() => setShowQuickPicker(false)} 
+        confirmLabel="Ξεκίνα την αξιολόγηση"
        />
     </div>
   );
