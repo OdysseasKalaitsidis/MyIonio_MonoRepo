@@ -47,14 +47,14 @@ services:
       timeout: 10s
       retries: 3
     ports:
-      - "5001:80"
+      - "5000:80"
 
   frontend:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:5001/api}
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api}
         - VITE_AI_URL=${VITE_AI_URL:-http://localhost:8000}
         - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     image: ghcr.io/odysseaskalaitsidis/myionio-frontend:latest

@@ -223,7 +223,7 @@ jobs:
             }
 
             check_service frontend http://127.0.0.1:8080/health myionio-frontend
-            check_service backend http://127.0.0.1:5001/api/health myionio-backend
+            check_service backend http://127.0.0.1:5000/api/health myionio-backend
             check_service ai-service http://127.0.0.1:8000/ myionio-ai
 
             sudo docker image prune -f
