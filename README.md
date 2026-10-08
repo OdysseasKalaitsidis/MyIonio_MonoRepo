@@ -82,7 +82,7 @@ Requires Docker and Docker Compose.
 
 ### Required production configuration
 
-The VPS must provide `DB_CONNECTION`, `JWT_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GEMINI_API_KEY`, and `GRAFANA_ADMIN_PASSWORD` through its private `.env` or secret manager.
+The VPS must provide `DB_CONNECTION`, `JWT_KEY`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` through its private `.env` or secret manager. `GEMINI_API_KEY` enables AI document parsing, while `SUPABASE_URL` and `SUPABASE_KEY` enable the legacy menu persistence path; the services start with those optional integrations disabled when they are absent. `GRAFANA_ADMIN_PASSWORD` is required when the monitoring profile is deployed.
 
 The frontend includes a lightweight installability baseline (`manifest.webmanifest`, service worker shell cache, and `/health`). The service worker is intentionally network-first and does not cache API responses or private student data.
 

@@ -11,7 +11,16 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+supabase = (
+    create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    if SUPABASE_URL and SUPABASE_SERVICE_KEY
+    else None
+)
+
+if supabase is None:
+    logger.warning(
+        "Supabase is not configured; legacy menu persistence is disabled."
+    )
 
 def upsert_schedule( semester: str, department: str, courses=None,  supabase: Client = None):
     if courses is None:
@@ -38,10 +47,15 @@ def upsert_schedule( semester: str, department: str, courses=None,  supabase: Cl
 
 from datetime import datetime
 
-def upsert_menu(schedule: WeeklySchedule, client: Client = supabase):
+def upsert_menu(schedule: WeeklySchedule, client: Client | None = None):
    
     if not schedule:
         logger.error("No schedule data provided to upsert.")
+        return
+
+    client = client or supabase
+    if client is None:
+        logger.error("Supabase client not configured")
         return
 
     data_payload = asdict(schedule)
