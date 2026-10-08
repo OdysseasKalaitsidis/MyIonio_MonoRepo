@@ -83,7 +83,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - BACKEND_URL=http://backend:80
       # Direct PostgreSQL connection (same cluster as C# backend)
       - DB_HOST=db
@@ -91,8 +91,8 @@ services:
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_KEY=${SUPABASE_KEY}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_KEY:-}
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - AI_ALLOWED_ORIGINS=${AI_ALLOWED_ORIGINS:-https://myionio.site,http://localhost:5173,http://localhost:8080}
     networks:
