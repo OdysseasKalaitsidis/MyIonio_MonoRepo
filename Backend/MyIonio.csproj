@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <EmbeddedResource Include="Data\Static\course_mapping_all.json" />
   </ItemGroup>
 
 </Project>

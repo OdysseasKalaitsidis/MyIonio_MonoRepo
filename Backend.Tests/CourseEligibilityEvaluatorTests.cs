@@ -24,9 +24,9 @@ public class CourseEligibilityEvaluatorTests
     [InlineData(3, ElectiveSelectionMode.Exactly, 1, 1)]
     [InlineData(4, ElectiveSelectionMode.Exactly, 1, 1)]
     [InlineData(5, ElectiveSelectionMode.Exactly, 2, 2)]
-    [InlineData(6, ElectiveSelectionMode.AtLeast, 1, null)]
-    [InlineData(7, ElectiveSelectionMode.AtLeast, 1, null)]
-    [InlineData(8, ElectiveSelectionMode.AtLeast, 2, null)]
+    [InlineData(6, ElectiveSelectionMode.Exactly, 1, 1)]
+    [InlineData(7, ElectiveSelectionMode.Exactly, 1, 1)]
+    [InlineData(8, ElectiveSelectionMode.Exactly, 2, 2)]
     public void SelectionRule_MatchesOfficialProgramme(
         int semesterId,
         ElectiveSelectionMode expectedMode,
@@ -134,7 +134,7 @@ public class CourseEligibilityEvaluatorTests
     [InlineData(5, 3, false)]
     [InlineData(6, 0, false)]
     [InlineData(6, 1, true)]
-    [InlineData(6, 3, true)]
+    [InlineData(6, 3, false)]
     [InlineData(8, 1, false)]
     [InlineData(8, 2, true)]
     public void SelectionRule_ValidatesExactAndMinimumCounts(

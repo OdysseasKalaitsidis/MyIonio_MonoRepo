@@ -124,8 +124,8 @@ public static class CourseEligibilityEvaluator
     {
         3 or 4 => new(ElectiveSelectionMode.Exactly, 1, 1),
         5 => new(ElectiveSelectionMode.Exactly, 2, 2),
-        6 or 7 => new(ElectiveSelectionMode.AtLeast, 1, null),
-        8 => new(ElectiveSelectionMode.AtLeast, 2, null),
+        6 or 7 => new(ElectiveSelectionMode.Exactly, 1, 1),
+        8 => new(ElectiveSelectionMode.Exactly, 2, 2),
         _ => new(ElectiveSelectionMode.None, 0, 0)
     };
 

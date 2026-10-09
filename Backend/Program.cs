@@ -215,6 +215,9 @@ for (int i = 0; i < 5; i++)
                 db.Database.Migrate();
                 Console.WriteLine("Migrations applied successfully.");
             }
+
+            await OfficialCurriculumCatalog.SeedAsync(db);
+            Console.WriteLine("Official 2025-2026 curriculum catalog is synchronized.");
             break;
         }
     }
@@ -223,8 +226,8 @@ for (int i = 0; i < 5; i++)
         Console.WriteLine($"Database migration attempt {i + 1} failed: {ex.Message}");
         if (i == 4) 
         {
-            Console.WriteLine("FATAL: Could not connect to database after 5 attempts. Continuing startup to prevent crash loop, but API calls will fail.");
-            break;
+            Console.WriteLine("FATAL: Database migration or official curriculum synchronization failed after 5 attempts.");
+            throw;
         }
         System.Threading.Thread.Sleep(5000);
     }
