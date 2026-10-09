@@ -77,7 +77,7 @@ Requires Docker and Docker Compose.
    ```bash
    docker compose ps
    curl -f http://localhost:8080/health
-   curl -f http://localhost:5001/api/health
+   curl -f http://localhost:5000/api/health
    ```
 
 ### Required production configuration
