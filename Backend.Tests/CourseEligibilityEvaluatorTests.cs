@@ -24,9 +24,9 @@ public class CourseEligibilityEvaluatorTests
     [InlineData(3, ElectiveSelectionMode.Exactly, 1, 1)]
     [InlineData(4, ElectiveSelectionMode.Exactly, 1, 1)]
     [InlineData(5, ElectiveSelectionMode.Exactly, 2, 2)]
-    [InlineData(6, ElectiveSelectionMode.Exactly, 1, 1)]
-    [InlineData(7, ElectiveSelectionMode.Exactly, 1, 1)]
-    [InlineData(8, ElectiveSelectionMode.Exactly, 2, 2)]
+    [InlineData(6, ElectiveSelectionMode.AtLeast, 1, null)]
+    [InlineData(7, ElectiveSelectionMode.AtLeast, 1, null)]
+    [InlineData(8, ElectiveSelectionMode.AtLeast, 2, null)]
     public void SelectionRule_MatchesOfficialProgramme(
         int semesterId,
         ElectiveSelectionMode expectedMode,
@@ -113,6 +113,19 @@ public class CourseEligibilityEvaluatorTests
     }
 
     [Fact]
+    public void GenericElective_IsElectiveWithoutInventingAToolbox()
+    {
+        var course = Course(3);
+        course.IsElective = true;
+
+        var decision = Evaluate(course);
+
+        Assert.Equal(EffectiveCourseCategory.Elective, decision.Category);
+        Assert.Equal(CourseEligibilityReason.ToolboxElective, decision.Reason);
+        Assert.Empty(course.Toolboxes);
+    }
+
+    [Fact]
     public void CourseFromLaterSemester_IsNotEligible()
     {
         var course = Course(8);
@@ -126,6 +139,25 @@ public class CourseEligibilityEvaluatorTests
     }
 
     [Theory]
+    [InlineData("2026-2027", 2026)]
+    [InlineData("2025-2026", 2025)]
+    [InlineData("invalid", 0)]
+    public void AcademicYearStart_ParsesComparableYear(string value, int expected)
+    {
+        Assert.Equal(expected, CourseEligibility.AcademicYearStart(value));
+    }
+
+    [Theory]
+    [InlineData("Χειμερινό", 7, true)]
+    [InlineData("Winter", 1, true)]
+    [InlineData("Εαρινό", 7, false)]
+    [InlineData("Spring", 2, true)]
+    public void ExpectedPeriod_MatchesSemesterParity(string period, int semesterId, bool expected)
+    {
+        Assert.Equal(expected, CourseEligibility.IsExpectedPeriod(period, semesterId));
+    }
+
+    [Theory]
     [InlineData(3, 0, false)]
     [InlineData(3, 1, true)]
     [InlineData(3, 2, false)]
@@ -134,7 +166,7 @@ public class CourseEligibilityEvaluatorTests
     [InlineData(5, 3, false)]
     [InlineData(6, 0, false)]
     [InlineData(6, 1, true)]
-    [InlineData(6, 3, false)]
+    [InlineData(6, 3, true)]
     [InlineData(8, 1, false)]
     [InlineData(8, 2, true)]
     public void SelectionRule_ValidatesExactAndMinimumCounts(

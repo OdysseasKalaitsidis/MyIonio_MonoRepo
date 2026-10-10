@@ -30,7 +30,7 @@ public class CourseOptionsController : ControllerBase
         var dept = CourseEligibility.DepartmentKey(department);
         var candidates = await _context.CourseCatalog.AsNoTracking().Where(c => c.SemesterId == semId).ToListAsync();
         candidates = candidates.Where(c => CourseEligibility.DepartmentKey(c.Department) == dept).ToList();
-        var latestYear = candidates.MaxBy(c => c.AcademicYear)?.AcademicYear;
+        var latestYear = candidates.MaxBy(c => CourseEligibility.AcademicYearStart(c.AcademicYear))?.AcademicYear;
         var courses = latestYear == null ? new List<CourseCatalogEntry>() : candidates.Where(c => c.AcademicYear == latestYear).ToList();
         var majorCode = CourseEligibility.NormalizePathway(major);
         var minorCode = CourseEligibility.NormalizePathway(minor);

@@ -34,6 +34,20 @@ public static class CourseEligibility
 
     public static bool IsActiveSemester(int semesterId) => ActiveSemesterIds.Contains(semesterId);
 
+    public static int AcademicYearStart(string? value)
+    {
+        var first = (value ?? string.Empty).Split('-', StringSplitOptions.TrimEntries).FirstOrDefault();
+        return int.TryParse(first, out var year) ? year : 0;
+    }
+
+    public static bool IsExpectedPeriod(string? period, int semesterId)
+    {
+        var normalized = RemoveDiacritics(period ?? string.Empty).ToUpperInvariant();
+        return semesterId % 2 == 1
+            ? normalized.Contains("ΧΕΙΜΕΡΙΝ") || normalized.Contains("WINTER")
+            : normalized.Contains("ΕΑΡΙΝ") || normalized.Contains("SPRING");
+    }
+
     public static string NormalizePathway(string? value) => (value ?? "").Trim().ToUpperInvariant() switch
     {
         "ΒΥΝ" or "BYN" => "BYN", "ΚΔΕ" or "KDE" => "KDE",

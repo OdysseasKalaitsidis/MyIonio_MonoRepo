@@ -17,11 +17,11 @@ public class OfficialCurriculumCatalogTests
         await using var db = new AppDbContext(options);
         db.CourseCatalog.Add(new CourseCatalogEntry
         {
-            CourseId = "IU-INF-2025-2026-STALE",
+            CourseId = "IU-INF-2026-2027-STALE",
             Department = "Department of Informatics",
             Semester = "Ζ",
             SemesterId = 7,
-            AcademicYear = "2025-2026",
+            AcademicYear = "2026-2027",
             CourseName = "Stale official course"
         });
         await db.SaveChangesAsync();
@@ -30,18 +30,32 @@ public class OfficialCurriculumCatalogTests
         await OfficialCurriculumCatalog.SeedAsync(db);
 
         var stored = await db.CourseCatalog.AsNoTracking().ToListAsync();
-        Assert.Equal(88, stored.Count);
-        Assert.Equal(88, stored.Select(course => course.CourseId).Distinct().Count());
+        Assert.Equal(89, stored.Count);
+        Assert.Equal(89, stored.Select(course => course.CourseId).Distinct().Count());
         Assert.DoesNotContain(stored, course => course.CourseName == "Stale official course");
     }
 
     [Fact]
     public void OfficialProgramme_ContainsEverySemesterAndPublishedCourse()
     {
-        Assert.Equal(88, _courses.Count);
+        Assert.Equal(89, _courses.Count);
         Assert.Equal(Enumerable.Range(1, 8), _courses.Select(course => course.SemesterId).Distinct().Order());
-        Assert.All(_courses, course => Assert.Equal("2025-2026", course.AcademicYear));
+        Assert.All(_courses, course => Assert.Equal("2026-2027", course.AcademicYear));
         Assert.All(_courses, course => Assert.Equal("Department of Informatics", course.Department));
+    }
+
+    [Fact]
+    public void NewGenericElectives_AreCategorizedAsElective()
+    {
+        var thirdSemester = Assert.Single(_courses, course =>
+            course.CourseName == "Βασικές Έννοιες και Εφαρμογές Τεχνητής Νοημοσύνης");
+        var fourthSemester = Assert.Single(_courses, course =>
+            course.CourseName == "Τεχνητή Νοημοσύνη: Ηθική, Κίνδυνοι και Βέλτιστες Πρακτικές");
+
+        Assert.True(thirdSemester.IsElective);
+        Assert.True(fourthSemester.IsElective);
+        Assert.Empty(thirdSemester.Toolboxes);
+        Assert.Empty(fourthSemester.Toolboxes);
     }
 
     [Fact]

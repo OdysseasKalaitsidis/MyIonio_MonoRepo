@@ -9,9 +9,9 @@ namespace MyIonio.Data
         public static void Seed(this ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Majors>().HasData(
-                new Majors { Id = 1, Name = "бум", Description = "Bioinformatics and Computational Intelligence", Mweight = 48 },
-                new Majors { Id = 2, Name = "йде", Description = "Cyber-security and Communication Networks", Mweight = 35 },
-                new Majors { Id = 3, Name = "ьлад", Description = "Digital Transformation and Data Analytics", Mweight = 66 }
+                new Majors { Id = 1, Name = "н▓н╔н²", Description = "Bioinformatics and Computational Intelligence", Mweight = 48 },
+                new Majors { Id = 2, Name = "н н■н∙", Description = "Cyber-security and Communication Networks", Mweight = 35 },
+                new Majors { Id = 3, Name = "н╗н°н▒н■", Description = "Digital Transformation and Data Analytics", Mweight = 66 }
             );
 
             modelBuilder.Entity<Toolboxes>().HasData(
@@ -43,7 +43,7 @@ namespace MyIonio.Data
                     QuestionId = 1,
                     Text = "Training an AI on some weird dataset to see what happens",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4), ("йде", 1)),
+                    MajorPoints = Points(("н▓н╔н²", 4), ("н н■н∙", 1)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -52,7 +52,7 @@ namespace MyIonio.Data
                     QuestionId = 1,
                     Text = "Building that app idea that's been living rent-free in your head",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 1), ("ьлад", 4)),
+                    MajorPoints = Points(("н н■н∙", 1), ("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points(("TB4", 3))
                 },
                 new Answer
@@ -61,7 +61,7 @@ namespace MyIonio.Data
                     QuestionId = 1,
                     Text = "Setting up a home security lab or trying to crack your own system",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points(("TB5", 2))
                 },
                 new Answer
@@ -70,7 +70,7 @@ namespace MyIonio.Data
                     QuestionId = 1,
                     Text = "Making something visual/interactive that makes people go \"wait, how'd you do that?\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 2), ("ьлад", 3)),
+                    MajorPoints = Points(("н▓н╔н²", 2), ("н╗н°н▒н■", 3)),
                     ToolboxPoints = Points(("TB2", 3))
                 },
 
@@ -97,7 +97,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"AI just discovered something doctors missed for 50 years\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 3)),
+                    MajorPoints = Points(("н▓н╔н²", 3)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -106,7 +106,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"College dropout's app just hit $10M revenue\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -115,7 +115,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"How hackers stole $600M in cryptocurrency\"",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 3)),
+                    MajorPoints = Points(("н н■н∙", 3)),
                     ToolboxPoints = Points(("TB5", 3))
                 },
                 new Answer
@@ -124,7 +124,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"The insane tech behind that movie scene\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 2), ("ьлад", 1)),
+                    MajorPoints = Points(("н▓н╔н²", 2), ("н╗н°н▒н■", 1)),
                     ToolboxPoints = Points(("TB2", 3))
                 },
                 new Answer
@@ -133,7 +133,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"The beautiful math that makes the internet work\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 3), ("йде", 1)),
+                    MajorPoints = Points(("н▓н╔н²", 3), ("н н■н∙", 1)),
                     ToolboxPoints = Points(("TB1", 3))
                 },
                 new Answer
@@ -142,7 +142,7 @@ namespace MyIonio.Data
                     QuestionId = 3,
                     Text = "?? \"Why students can't learn [subject] and how to fix it\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 2)),
+                    MajorPoints = Points(("н╗н°н▒н■", 2)),
                     ToolboxPoints = Points(("TB3", 4))
                 },
 
@@ -153,7 +153,7 @@ namespace MyIonio.Data
                     QuestionId = 4,
                     Text = "\"I wonder if I could predict/model/analyze this...\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -162,7 +162,7 @@ namespace MyIonio.Data
                     QuestionId = 4,
                     Text = "\"I could build something that solves this problem\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 4)),
+                    MajorPoints = Points(("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -171,7 +171,7 @@ namespace MyIonio.Data
                     QuestionId = 4,
                     Text = "\"That's definitely a security risk waiting to happen\"",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -180,7 +180,7 @@ namespace MyIonio.Data
                     QuestionId = 4,
                     Text = "\"Why is this so hard to use? I could make this better\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points()
                 },
 
@@ -191,7 +191,7 @@ namespace MyIonio.Data
                     QuestionId = 5,
                     Text = "?? Jupyter Notebook + unlimited datasets",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points(("TB1", 2))
                 },
                 new Answer
@@ -200,7 +200,7 @@ namespace MyIonio.Data
                     QuestionId = 5,
                     Text = "?? Full cloud deployment setup + API access",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 4)),
+                    MajorPoints = Points(("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points(("TB4", 4))
                 },
                 new Answer
@@ -209,7 +209,7 @@ namespace MyIonio.Data
                     QuestionId = 5,
                     Text = "??? Kali Linux + all the hacking tools (ethical, obviously)",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points(("TB5", 4))
                 },
                 new Answer
@@ -218,7 +218,7 @@ namespace MyIonio.Data
                     QuestionId = 5,
                     Text = "?? Unity/Unreal Engine OR your favorite creative suite",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB2", 3))
                 },
 
@@ -229,7 +229,7 @@ namespace MyIonio.Data
                     QuestionId = 6,
                     Text = "The 'make it look pretty' person",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 3)),
+                    MajorPoints = Points(("н▓н╔н²", 3)),
                     ToolboxPoints = Points(("TB2", 2))
                 },
                 new Answer
@@ -238,7 +238,7 @@ namespace MyIonio.Data
                     QuestionId = 6,
                     Text = "The pure researcher",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3)),
                     ToolboxPoints = Points(("TB1", 2))
                 },
                 new Answer
@@ -247,7 +247,7 @@ namespace MyIonio.Data
                     QuestionId = 6,
                     Text = "The 'move fast break things' person",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 3)),
+                    MajorPoints = Points(("н н■н∙", 3)),
                     ToolboxPoints = Points(("TB5", 2))
                 },
                 new Answer
@@ -256,7 +256,7 @@ namespace MyIonio.Data
                     QuestionId = 6,
                     Text = "The backend-only person",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 2), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 2), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB4", 1))
                 },
 
@@ -267,7 +267,7 @@ namespace MyIonio.Data
                     QuestionId = 7,
                     Text = "?? Researcher's Algorithm Breakthrough Advances Medicine",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -276,7 +276,7 @@ namespace MyIonio.Data
                     QuestionId = 7,
                     Text = "?? Startup's Platform Now Serves 10M Users Daily",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 4)),
+                    MajorPoints = Points(("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -285,7 +285,7 @@ namespace MyIonio.Data
                     QuestionId = 7,
                     Text = "??? Security Expert Prevents Billion-Dollar Data Breach",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -294,7 +294,7 @@ namespace MyIonio.Data
                     QuestionId = 7,
                     Text = "?? Creator's Work Changes How 100k People Learn/Play",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB2", 2))
                 },
 
@@ -305,7 +305,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "?? How to make AI actually intelligent",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -314,7 +314,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "?? How to build systems that don't crash",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3)),
                     ToolboxPoints = Points(("TB4", 3))
                 },
                 new Answer
@@ -323,7 +323,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "?? How hackers think and how to stop them",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points(("TB5", 4))
                 },
                 new Answer
@@ -332,7 +332,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "?? How to make interfaces that feel magical",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB2", 4))
                 },
                 new Answer
@@ -341,7 +341,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "?? The deep theory that makes everything else possible",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -350,7 +350,7 @@ namespace MyIonio.Data
                     QuestionId = 8,
                     Text = "????? How to explain complex stuff so anyone can get it",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 2)),
+                    MajorPoints = Points(("н╗н°н▒н■", 2)),
                     ToolboxPoints = Points(("TB3", 3))
                 },
 
@@ -361,7 +361,7 @@ namespace MyIonio.Data
                     QuestionId = 9,
                     Text = "Launches into the technical details of the algorithm/problem",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -370,7 +370,7 @@ namespace MyIonio.Data
                     QuestionId = 9,
                     Text = "\"Something that could actually be useful for [specific people]\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 4)),
+                    MajorPoints = Points(("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -379,7 +379,7 @@ namespace MyIonio.Data
                     QuestionId = 9,
                     Text = "\"Trying to break/secure this system\" shows security logs",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points(("TB5", 3))
                 },
                 new Answer
@@ -388,7 +388,7 @@ namespace MyIonio.Data
                     QuestionId = 9,
                     Text = "Just shows them the demo/interface \"Check this out!\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB2", 4))
                 },
 
@@ -399,7 +399,7 @@ namespace MyIonio.Data
                     QuestionId = 10,
                     Text = "\"Wait... why is it doing THAT? This is actually interesting\"",
                     Weight = 1,
-                    MajorPoints = Points(("бум", 4)),
+                    MajorPoints = Points(("н▓н╔н²", 4)),
                     ToolboxPoints = Points()
                 },
                 new Answer
@@ -408,7 +408,7 @@ namespace MyIonio.Data
                     QuestionId = 10,
                     Text = "\"Ugh, this delays the launch timeline\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 4)),
+                    MajorPoints = Points(("н╗н°н▒н■", 4)),
                     ToolboxPoints = Points(("TB4", 3))
                 },
                 new Answer
@@ -417,7 +417,7 @@ namespace MyIonio.Data
                     QuestionId = 10,
                     Text = "\"Could someone exploit this? Let me check...\"",
                     Weight = 1,
-                    MajorPoints = Points(("йде", 4)),
+                    MajorPoints = Points(("н н■н∙", 4)),
                     ToolboxPoints = Points(("TB5", 3))
                 },
                 new Answer
@@ -426,7 +426,7 @@ namespace MyIonio.Data
                     QuestionId = 10,
                     Text = "\"How do I explain this to users without causing panic?\"",
                     Weight = 1,
-                    MajorPoints = Points(("ьлад", 3), ("бум", 1)),
+                    MajorPoints = Points(("н╗н°н▒н■", 3), ("н▓н╔н²", 1)),
                     ToolboxPoints = Points(("TB2", 4))
                 }
 

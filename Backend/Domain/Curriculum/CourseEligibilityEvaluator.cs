@@ -103,7 +103,9 @@ public static class CourseEligibilityEvaluator
         var minor = CourseEligibility.NormalizePathway(context.Minor);
 
         if (course.Roles.Count == 0 && course.Toolboxes.Count == 0)
-            return Required(CourseEligibilityReason.CoreRequired);
+            return course.IsElective
+                ? Elective(CourseEligibilityReason.ToolboxElective, context.TargetSemesterId)
+                : Required(CourseEligibilityReason.CoreRequired);
 
         if (CourseEligibility.HasRole(course, major, "MAJOR", "REQUIRED"))
             return Required(CourseEligibilityReason.MajorRequired);
@@ -124,8 +126,8 @@ public static class CourseEligibilityEvaluator
     {
         3 or 4 => new(ElectiveSelectionMode.Exactly, 1, 1),
         5 => new(ElectiveSelectionMode.Exactly, 2, 2),
-        6 or 7 => new(ElectiveSelectionMode.Exactly, 1, 1),
-        8 => new(ElectiveSelectionMode.Exactly, 2, 2),
+        6 or 7 => new(ElectiveSelectionMode.AtLeast, 1, null),
+        8 => new(ElectiveSelectionMode.AtLeast, 2, null),
         _ => new(ElectiveSelectionMode.None, 0, 0)
     };
 

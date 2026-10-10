@@ -48,10 +48,14 @@ namespace MyIonio.Controllers
             // Retrieve metadata from the database
             var allSchedulesMetadata = await _context.schedules
                 .AsNoTracking()
-                .Select(s => new { s.id, s.department, s.DepartmentId, s.semester, s.SemesterId })
+                .Select(s => new { s.id, s.department, s.DepartmentId, s.semester, s.SemesterId, s.academic_year, s.period })
                 .ToListAsync();
 
-            var scheduleId = allSchedulesMetadata.OrderByDescending(s => s.id).FirstOrDefault(s =>
+            var scheduleId = allSchedulesMetadata
+                .OrderByDescending(s => CourseEligibility.AcademicYearStart(s.academic_year))
+                .ThenByDescending(s => CourseEligibility.IsExpectedPeriod(s.period, requestedSemesterId))
+                .ThenByDescending(s => s.id)
+                .FirstOrDefault(s =>
             {
                 var sDept = s.department?.Trim();
                 bool deptMatch = (dto.DepartmentId.HasValue && s.DepartmentId == dto.DepartmentId.Value) ||

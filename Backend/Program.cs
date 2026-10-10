@@ -217,7 +217,9 @@ for (int i = 0; i < 5; i++)
             }
 
             await OfficialCurriculumCatalog.SeedAsync(db);
-            Console.WriteLine("Official 2025-2026 curriculum catalog is synchronized.");
+            Console.WriteLine("Official 2026-2027 curriculum catalog is synchronized.");
+            await OfficialClassScheduleCatalog.SeedAsync(db);
+            Console.WriteLine("Official 2026-2027 class schedules are synchronized.");
             break;
         }
     }

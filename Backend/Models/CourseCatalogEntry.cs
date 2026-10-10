@@ -16,6 +16,7 @@ public class CourseCatalogEntry
     public int TutorialHours { get; set; }
     public int TeachingUnits { get; set; }
     public int Ects { get; set; }
+    public bool IsElective { get; set; }
     public List<CourseRole> Roles { get; set; } = new();
     public List<string> Toolboxes { get; set; } = new();
 }

@@ -12,7 +12,7 @@ public static class OfficialCurriculumCatalog
 {
     private const string ResourceSuffix = "Data.Static.course_mapping_all.json";
     private const string DefaultDepartment = "Department of Informatics";
-    private const string DefaultAcademicYear = "2025-2026";
+    private const string DefaultAcademicYear = "2026-2027";
 
     public static IReadOnlyList<CourseCatalogEntry> Load()
     {
@@ -94,6 +94,7 @@ public static class OfficialCurriculumCatalog
             stored.TutorialHours = official.TutorialHours;
             stored.TeachingUnits = official.TeachingUnits;
             stored.Ects = official.Ects;
+            stored.IsElective = official.IsElective;
             stored.Roles = official.Roles;
             stored.Toolboxes = official.Toolboxes;
         }
@@ -118,8 +119,14 @@ public static class OfficialCurriculumCatalog
         {
             var tag = rawTag.ToUpperInvariant();
             if (tag.Equals("COMPULSORY", StringComparison.Ordinal)) continue;
+            if (tag.Equals("ELECTIVE", StringComparison.Ordinal))
+            {
+                course.IsElective = true;
+                continue;
+            }
             if (tag.StartsWith("TB", StringComparison.Ordinal))
             {
+                course.IsElective = true;
                 course.Toolboxes.Add(tag);
                 continue;
             }
@@ -137,6 +144,7 @@ public static class OfficialCurriculumCatalog
                 "MIN" or "ΜΙΝ" => new CourseRole { Pathway = pathway, Audience = "MINOR", Requirement = "REQUIRED" },
                 _ => throw new InvalidDataException($"Unknown curriculum tag '{rawTag}' for '{course.CourseName}'.")
             };
+            if (role.Requirement == "ELECTIVE") course.IsElective = true;
             course.Roles.Add(role);
         }
     }

@@ -147,6 +147,7 @@ namespace MyIonio.Data
             modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.TutorialHours).HasColumnName("tutorial_hours");
             modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.TeachingUnits).HasColumnName("teaching_units");
             modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Ects).HasColumnName("ects");
+            modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.IsElective).HasColumnName("is_elective");
             modelBuilder.Entity<CourseCatalogEntry>().HasIndex(c => new { c.CourseId, c.Department, c.Semester, c.AcademicYear }).IsUnique().HasDatabaseName("IX_course_catalog_identity");
             modelBuilder.Entity<CourseCatalogEntry>().Property(c => c.Roles).HasColumnName("roles").HasColumnType("jsonb").HasConversion(
                 v => JsonSerializer.Serialize(v ?? new List<CourseRole>(), jsonOptions),
@@ -191,6 +192,11 @@ namespace MyIonio.Data
             modelBuilder.Entity<Schedules>()
                  .Property(s => s.period)
                  .HasColumnName("period");
+
+            modelBuilder.Entity<Schedules>()
+                .HasIndex(s => new { s.DepartmentId, s.SemesterId, s.academic_year, s.period })
+                .IsUnique()
+                .HasDatabaseName("IX_class_schedules_natural_key");
 
             modelBuilder.Entity<Schedules>()
                 .Property(s => s.courses)

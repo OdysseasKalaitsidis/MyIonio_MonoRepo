@@ -86,10 +86,14 @@ public class UserCoursesController : ControllerBase
         if (string.IsNullOrWhiteSpace(targetDepartment)) return BadRequest("User department is not set.");
 
         var metadata = await _context.schedules.AsNoTracking()
-            .Select(schedule => new { schedule.id, schedule.department, schedule.semester, schedule.SemesterId }).ToListAsync();
+            .Select(schedule => new { schedule.id, schedule.department, schedule.semester, schedule.SemesterId, schedule.academic_year, schedule.period }).ToListAsync();
 
         var departmentKey = CourseEligibility.DepartmentKey(targetDepartment);
-        var scheduleId = metadata.OrderByDescending(item => item.id).FirstOrDefault(item =>
+        var scheduleId = metadata
+            .OrderByDescending(item => CourseEligibility.AcademicYearStart(item.academic_year))
+            .ThenByDescending(item => CourseEligibility.IsExpectedPeriod(item.period, targetSemesterId))
+            .ThenByDescending(item => item.id)
+            .FirstOrDefault(item =>
             CourseEligibility.DepartmentKey(item.department) == departmentKey &&
             (item.SemesterId == targetSemesterId || CourseEligibility.SemesterId(item.semester) == targetSemesterId))?.id;
 
@@ -100,19 +104,19 @@ public class UserCoursesController : ControllerBase
         var courses = entity?.courses ?? new List<CourseEntry>();
 
         var selectedIds = DictionaryValue(user.EnrolledCourseIds, targetSemester);
+        var selectedNames = DictionaryValue(user.EnrolledCourses, targetSemester);
         if (selectedIds.Count > 0)
         {
             var allowed = selectedIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
-            courses = courses.Where(course => !string.IsNullOrWhiteSpace(course.CourseId) && allowed.Contains(course.CourseId)).ToList();
+            var matchingIds = courses.Where(course =>
+                !string.IsNullOrWhiteSpace(course.CourseId) && allowed.Contains(course.CourseId));
+            courses = matchingIds.Concat(FilterByNames(courses, selectedNames))
+                .DistinctBy(course => course.Id)
+                .ToList();
         }
-        else
+        else if (selectedNames.Count > 0)
         {
-            var selectedNames = DictionaryValue(user.EnrolledCourses, targetSemester);
-            if (selectedNames.Count > 0)
-            {
-                var allowed = selectedNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
-                courses = courses.Where(course => allowed.Contains(course.CourseName)).ToList();
-            }
+            courses = FilterByNames(courses, selectedNames);
         }
 
         return Ok(courses);
@@ -135,7 +139,7 @@ public class UserCoursesController : ControllerBase
         var departmentKey = CourseEligibility.DepartmentKey(department);
         candidates = candidates.Where(course => CourseEligibility.DepartmentKey(course.Department) == departmentKey).ToList();
 
-        var academicYear = candidates.MaxBy(course => course.AcademicYear)?.AcademicYear;
+        var academicYear = candidates.MaxBy(course => CourseEligibility.AcademicYearStart(course.AcademicYear))?.AcademicYear;
         var catalog = academicYear == null
             ? new List<CourseCatalogEntry>()
             : candidates.Where(course => course.AcademicYear == academicYear).ToList();
@@ -190,6 +194,25 @@ public class UserCoursesController : ControllerBase
         }
 
         return (selected, null);
+    }
+
+    private static List<CourseEntry> FilterByNames(List<CourseEntry> courses, List<string> selectedNames)
+    {
+        if (selectedNames.Count == 0) return new List<CourseEntry>();
+        var allowed = selectedNames.Select(CourseNameKey).ToHashSet(StringComparer.Ordinal);
+        return courses.Where(course => allowed.Contains(CourseNameKey(course.CourseName))).ToList();
+    }
+
+    private static string CourseNameKey(string? value)
+    {
+        var key = string.Concat((value ?? string.Empty)
+            .Replace("ΥΠΟΛΟΓΙΣΤΩΝ", "Η/Υ", StringComparison.OrdinalIgnoreCase)
+            .Replace("H/Y", "Η/Υ", StringComparison.OrdinalIgnoreCase)
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToUpperInvariant));
+        return key == "ΤΕΧΝΟΛΟΓΙΑΨΥΧΑΓΩΓΙΚΟΥΛΟΓΙΣΜΙΚΟΥ"
+            ? "ΤΕΧΝΟΛΟΓΙΕΣΨΥΧΑΓΩΓΙΚΟΥΛΟΓΙΣΜΙΚΟΥ"
+            : key;
     }
 
     private static List<string> DictionaryValue(Dictionary<string, List<string>>? source, string semester)
