@@ -22,11 +22,11 @@ export interface GoogleRegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  token?: string | null;
   email: string;
   firstName: string;
   lastName: string;
-  refreshToken: string | null;
+  refreshToken?: string | null;
   userId: string;
   recommendation?: RecommendationDto | null;
   semester?: string;
@@ -56,6 +56,7 @@ export interface AuthState {
   error: string | null;
   token: string | null;
   isAuthenticated: boolean;
+  sessionChecked: boolean;
 }
 
 export interface RegisterRequestWithTest {

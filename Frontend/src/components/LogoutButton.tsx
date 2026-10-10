@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import clsx from "clsx";
-import { logout } from "../features/auth/authSlice";
+import { signOut } from "../features/auth/authSlice";
 import type { RootState, AppDispatch } from "../app/store";
 import { Button } from "./Button";
 
@@ -18,8 +18,8 @@ export default function LogoutButton({ className, iconSize = 20 }: LogoutButtonP
 
   if (!isAuthenticated) return null;
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signOut());
     navigate("/");
   };
 

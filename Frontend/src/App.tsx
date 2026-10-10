@@ -18,6 +18,16 @@ import ProfessorsPage from "./pages/ProfessorsPage";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { setPreferences, updateCoursePreferences } from "./features/preferences/preferencesSlice";
+import { restoreSession } from "./features/auth/authSlice";
+
+function AuthBootstrap() {
+  const dispatch = useAppDispatch();
+  const sessionChecked = useAppSelector((state) => state.auth.sessionChecked);
+  useEffect(() => {
+    if (!sessionChecked) dispatch(restoreSession());
+  }, [dispatch, sessionChecked]);
+  return null;
+}
 
 import { Toaster } from "react-hot-toast";
 
@@ -29,9 +39,7 @@ function AuthSync() {
   useEffect(() => {
     if (isAuthenticated && user) {
       // Only sync if values differ to avoid infinite loops
-      const needsPrefSync = 
-        (user.department && user.department !== department) || 
-        (user.semester && String(user.semester) !== String(semester));
+      const needsPrefSync = (!department || !semester) && user.department && user.semester;
 
       if (needsPrefSync) {
         // Map department name to ID
@@ -43,15 +51,13 @@ function AuthSync() {
         const deptId = DEPARTMENT_ID_MAP[user.department || ""] || 1;
 
         dispatch(setPreferences({
-          department: user.department || "",
+          department: user.department!,
           departmentId: deptId,
-          semester: user.semester || ""
+          semester: user.semester!
         }));
       }
       
-      const needsCourseSync = 
-        (user.major && user.major !== major) || 
-        (user.minor && user.minor !== minor);
+      const needsCourseSync = (!major && user.major) || (!minor && user.minor);
 
       if (needsCourseSync) {
         dispatch(updateCoursePreferences({
@@ -70,6 +76,7 @@ export function App() {
     <Provider store={store}>
       <ConsentProvider>
         <CookieConsentBanner />
+        <AuthBootstrap />
         <AuthSync /> 
         <Toaster position="top-right" toastOptions={{
           duration: 4000,

@@ -51,3 +51,14 @@ export const googleRegister = async (
   const response = await api.post<AuthResponse>("/auth/google-register", data);
   return response.data;
 };
+
+export const refreshSession = async (legacyRefreshToken?: string | null): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>("/auth/refresh-token", legacyRefreshToken
+    ? { refreshToken: legacyRefreshToken }
+    : {});
+  return response.data;
+};
+
+export const logoutSession = async (): Promise<void> => {
+  await api.post("/auth/logout");
+};

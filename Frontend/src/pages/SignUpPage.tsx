@@ -1,434 +1,181 @@
-import { useState, useMemo } from "react";
-import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import type { AxiosError } from "axios";
-import type { AppDispatch } from "../app/store";
-import { Button } from "../components/Button";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import type { AppDispatch, RootState } from "../app/store";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { registerUser, registerUserWithTest } from "../features/auth/api";
-import { signIn, registerWithGoogle } from "../features/auth/authSlice";
+import { registerWithGoogle, signIn } from "../features/auth/authSlice";
 import type { RegisterRequest } from "../features/auth/models";
 import { TermsModal } from "../components/TermsModal";
 import { PrivacyPolicyModal } from "../components/PrivacyPolicyModal";
 import { QuickPickerModal } from "./dashboard/QuickPickerModal";
-import { DEPARTMENTS_LIST } from "../features/preferences/constants";
+import { ACTIVE_SEMESTERS, DEPARTMENTS_LIST } from "../features/preferences/constants";
 import { useQuizData } from "../hooks/useQuizData";
-import { User, Mail, GraduationCap, Lock, Eye, EyeOff, Briefcase } from "lucide-react";
 import { PageLayout } from "../components/layout/PageLayout";
 
 export default function SignUpPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const preferences = useSelector((state: RootState) => state.preferences);
   const { quizRecommendation, quizUserAnswers, clearQuizData } = useQuizData();
-  // const { department, semester } = useSelector((state: RootState) => state.preferences);
-
-  const availableSemesters = useMemo(() => {
-      // Force Summer/Spring semester (Even) as requested
-      return ["Β", "Δ", "ΣΤ", "Η"];
-  }, []);
+  const activeSemesters = ACTIVE_SEMESTERS.map(({ code }) => code);
 
   const [form, setForm] = useState<RegisterRequest>({
     name: "",
     surname: "",
     email: "",
-    department: DEPARTMENTS_LIST[0],
-    semester: availableSemesters[0],
+    department: preferences.department || DEPARTMENTS_LIST[0],
+    semester: preferences.semester ? String(preferences.semester) : activeSemesters[0],
     password: "",
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [googleIdToken, setGoogleIdToken] = useState<string | null>(null);
 
-  const handleGoogleSuccess = (idToken: string) => {
-      setGoogleIdToken(idToken);
-      setShowQuickPicker(true);
-  };
+  const shouldSubmitWithTest = Boolean(quizRecommendation && quizUserAnswers?.length);
+  const hasDeviceProfile = Boolean(preferences.department && preferences.semester);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const shouldSubmitWithTest =
-    !!quizRecommendation && (quizUserAnswers?.length ?? 0) > 0;
-  const handleQuickPickerComplete = async (dept: string, sem: string) => {
-    setShowQuickPicker(false);
-    
-    if (googleIdToken) {
-        try {
-            setLoading(true);
-            const result = await dispatch(registerWithGoogle({
-                idToken: googleIdToken,
-                department: dept,
-                semester: sem,
-                recommendation: quizRecommendation
-            }));
-
-            if (registerWithGoogle.fulfilled.match(result)) {
-                navigate("/dashboard");
-            }
-        } catch (err) {
-            setError("Google registration failed. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+  const finishGoogleRegistration = async (idToken: string, department: string, semester: string) => {
+    setLoading(true);
+    setError(null);
+    const result = await dispatch(registerWithGoogle({
+      idToken,
+      department,
+      semester,
+      recommendation: quizRecommendation,
+    }));
+    setLoading(false);
+    if (registerWithGoogle.fulfilled.match(result)) {
+      clearQuizData();
+      navigate("/dashboard", { replace: true });
+    } else {
+      setError(result.payload || "Η εγγραφή με Google απέτυχε.");
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const passwordRule =
-      /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
-
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+  const handleGoogleSuccess = async (idToken: string) => {
+    if (hasDeviceProfile) {
+      await finishGoogleRegistration(idToken, preferences.department!, String(preferences.semester));
       return;
     }
+    setGoogleIdToken(idToken);
+    setShowQuickPicker(true);
+  };
 
+  const handleQuickPickerComplete = async (department: string, semester: string) => {
+    setForm((current) => ({ ...current, department, semester }));
+    setShowQuickPicker(false);
+    if (googleIdToken) await finishGoogleRegistration(googleIdToken, department, semester);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setForm((current) => name === "password"
+      ? { ...current, password: value, confirmPassword: value }
+      : { ...current, [name]: value });
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const passwordRule = /^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,128}$/;
     if (!passwordRule.test(form.password)) {
-      setError(
-        "Password must be at least 8 characters, include one uppercase letter and one symbol."
-      );
+      setError("Ο κωδικός χρειάζεται 8 χαρακτήρες, ένα κεφαλαίο γράμμα και ένα σύμβολο.");
       return;
     }
 
     setError(null);
-    setSuccessMessage(null);
     setLoading(true);
-
     try {
-      const payload: RegisterRequest = { ...form };
-
+      const payload = { ...form, email: form.email.trim(), name: form.name.trim(), surname: form.surname.trim() };
       if (shouldSubmitWithTest && quizRecommendation && quizUserAnswers) {
-        const userAnswersPayload = quizUserAnswers.map((a) => ({
-          QuestionId: a.QuestionId,
-          AnswerIds: a.AnswerIds,
-          SliderValue: a.SliderValue ?? null,
-          Ranking: a.Ranking ?? null,
-        }));
-
-
-
-        const registerResponse = await registerUserWithTest({
+        await registerUserWithTest({
           UserData: payload,
           Recommendation: quizRecommendation,
-          UserAnswers: userAnswersPayload,
+          UserAnswers: quizUserAnswers.map((answer) => ({
+            QuestionId: answer.QuestionId,
+            AnswerIds: answer.AnswerIds,
+            SliderValue: answer.SliderValue ?? null,
+            Ranking: answer.Ranking ?? null,
+          })),
         });
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            token: registerResponse.token,
-            userId: registerResponse.userid,
-          })
-        );
-        
         clearQuizData();
       } else {
-
         await registerUser(payload);
       }
 
-      setSuccessMessage("Account created successfully. Signing you in...");
-
-      const loginResult = await dispatch(
-        signIn({ email: form.email, password: form.password })
-      );
-
-      if (signIn.fulfilled.match(loginResult)) {
-        navigate("/dashboard");
-      } else {
-        setError("Account created but auto sign-in failed. Please log in.");
-      }
-    } catch (err) {
-      const axiosError = err as AxiosError<{ message?: string }>;
-      const message =
-        axiosError.response?.data?.message ??
-        axiosError.message ??
-        "Registration failed";
-      setError(message);
+      const loginResult = await dispatch(signIn({ email: payload.email, password: payload.password }));
+      if (signIn.fulfilled.match(loginResult)) navigate("/dashboard", { replace: true });
+      else setError("Ο λογαριασμός δημιουργήθηκε. Συνδέσου για να συνεχίσεις.");
+    } catch (reason) {
+      const axiosError = reason as AxiosError<{ message?: string }>;
+      setError(axiosError.response?.data?.message || "Δεν ήταν δυνατή η δημιουργία λογαριασμού.");
     } finally {
       setLoading(false);
     }
   };
 
+  const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-ionian-blue focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-900/30";
+
   return (
     <PageLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-8">
-            {/* Background elements */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute -left-[10%] top-[40%] w-[500px] h-[500px] rounded-full bg-ionian-blue/5 dark:bg-ionian-blue/10 blur-[120px]" />
+      <main className="mx-auto w-full max-w-xl px-5 py-10">
+        <Link to="/" className="mb-8 inline-flex text-sm font-medium text-slate-500 hover:text-ionian-blue">← Αρχική</Link>
+        <header className="mb-7">
+          <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Δημιουργία λογαριασμού</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Το ακαδημαϊκό προφίλ της συσκευής θα χρησιμοποιηθεί αυτόματα — δεν χρειάζεται νέο onboarding.</p>
+        </header>
+
+        <div className="mb-6"><GoogleSignInButton onSuccess={handleGoogleSuccess} /></div>
+        <div className="mb-6 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />ή με email<span className="h-px flex-1 bg-slate-200 dark:bg-white/10" /></div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <label><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Όνομα</span><input name="name" value={form.name} onChange={handleChange} autoComplete="given-name" maxLength={80} className={inputClass} required /></label>
+            <label><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Επώνυμο</span><input name="surname" value={form.surname} onChange={handleChange} autoComplete="family-name" maxLength={80} className={inputClass} required /></label>
+          </div>
+
+          <label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</span><input type="email" name="email" value={form.email} onChange={handleChange} autoComplete="email" inputMode="email" maxLength={254} className={inputClass} required /></label>
+
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Κωδικός</span>
+            <span className="relative block"><input type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange} autoComplete="new-password" maxLength={128} className={`${inputClass} pr-12`} required />
+              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 hover:text-slate-700 dark:hover:text-white" aria-label={showPassword ? "Απόκρυψη κωδικού" : "Εμφάνιση κωδικού"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            </span>
+            <span className="mt-1.5 block text-xs text-slate-500">8+ χαρακτήρες, ένα κεφαλαίο γράμμα και ένα σύμβολο.</span>
+          </label>
+
+          <fieldset className="rounded-2xl border border-slate-200 p-4 dark:border-white/10">
+            <legend className="px-2 text-sm font-bold text-slate-700 dark:text-slate-200">Αποθηκευμένο ακαδημαϊκό προφίλ</legend>
+            <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
+              <select name="department" value={form.department} onChange={handleChange} className={inputClass} aria-label="Τμήμα">
+                {DEPARTMENTS_LIST.map((department) => <option key={department} value={department}>{department}</option>)}
+              </select>
+              <select name="semester" value={form.semester} onChange={handleChange} className={inputClass} aria-label="Εξάμηνο">
+                {activeSemesters.map((semester) => <option key={semester} value={semester}>{semester} εξάμηνο</option>)}
+              </select>
             </div>
+            <p className="mt-2 text-xs text-slate-500">Μπορείς να το αλλάξεις αργότερα από το Πρόγραμμα.</p>
+          </fieldset>
 
-            <div className="relative w-full max-w-2xl z-10">
-                <Link to="/" className="inline-flex items-center text-sm text-slate-500 hover:text-ionian-blue dark:text-gray-400 dark:hover:text-white mb-6 transition-colors">
-                    <span className="mr-2">←</span> Back to Home
-                </Link>
-                <div className="text-center mb-8 space-y-3">
-                <p className="text-slate-500 dark:text-gray-400 uppercase tracking-[0.3em] text-xs font-semibold">
-                    Join the portal
-                </p>
-                <h1 className="text-4xl font-bold text-slate-900 dark:text-white transition-colors">
-                    Create Your Account
-                </h1>
-                <p className="text-slate-500 dark:text-gray-400 max-w-md mx-auto transition-colors">
-                    Set up your profile to access personalized recommendations.
-                </p>
-                </div>
+          {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
+          <button type="submit" disabled={loading} className="w-full rounded-xl bg-ionian-blue px-4 py-3 font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-60">{loading ? "Δημιουργία…" : "Δημιουργία λογαριασμού"}</button>
+        </form>
 
-                <form
-                onSubmit={handleSubmit}
-                className="bg-white/50 dark:bg-surface/50 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl backdrop-blur-md p-8 space-y-6 transition-all"
-                >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Name
-                    </label>
-                    <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <input
-                        type="text"
-                        name="name"
-                        value={form.name}
-                        onChange={handleChange}
-                        placeholder="John"
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                        required
-                        />
-                    </div>
-                    </div>
+        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500"><ShieldCheck size={15} />Ο κωδικός κατακερματίζεται και τα tokens δεν είναι προσβάσιμα από JavaScript.</div>
+        <p className="mt-5 text-center text-xs leading-5 text-slate-500">Με την εγγραφή αποδέχεσαι τους <button onClick={() => setIsTermsOpen(true)} className="font-semibold text-ionian-blue hover:underline">όρους</button> και την <button onClick={() => setIsPrivacyOpen(true)} className="font-semibold text-ionian-blue hover:underline">πολιτική απορρήτου</button>.</p>
+        <p className="mt-5 text-center text-sm text-slate-500">Έχεις ήδη λογαριασμό;{" "}<Link to="/signin" className="font-bold text-ionian-blue hover:underline">Σύνδεση</Link></p>
 
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Surname
-                    </label>
-                    <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <input
-                        type="text"
-                        name="surname"
-                        value={form.surname}
-                        onChange={handleChange}
-                        placeholder="Doe"
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                        required
-                        />
-                    </div>
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">Email</label>
-                    <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                    <input
-                        type="email"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="you@example.com"
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                        required
-                    />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Semester
-                    </label>
-                    <div className="relative group">
-                        <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <select
-                        name="semester"
-                        value={form.semester}
-                        onChange={handleChange}
-                        className="dark-select w-full bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 pl-12 pr-8 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all appearance-none"
-                        >
-                        {availableSemesters.map((semester) => (
-                            <option
-                            key={semester}
-                            value={semester}
-                            className="bg-white dark:bg-surface text-slate-900 dark:text-white"
-                            >
-                            {semester}
-                            </option>
-                        ))}
-                        </select>
-                    </div>
-                    </div>
-
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Department
-                    </label>
-                    <div className="relative group">
-                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <select
-                        name="department"
-                        value={form.department}
-                        onChange={handleChange}
-                        className="dark-select w-full bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 pl-12 pr-8 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all appearance-none"
-                        >
-                        {DEPARTMENTS_LIST.map((dept) => (
-                            <option
-                            key={dept}
-                            value={dept}
-                            className="bg-white dark:bg-surface text-slate-900 dark:text-white"
-                            >
-                            {dept}
-                            </option>
-                        ))}
-                        </select>
-                    </div>
-                    </div>
-
-
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Password
-                    </label>
-                    <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                        required
-                        />
-                        <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-white transition-colors"
-                        >
-                        {showPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                        ) : (
-                            <Eye className="w-5 h-5" />
-                        )}
-                        </button>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">
-                        Must contain at least 8 characters, 1 uppercase letter, and 1
-                        symbol.
-                    </p>
-                    </div>
-
-                    <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                        Confirm Password
-                    </label>
-                    <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                        <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        value={form.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="••••••••••"
-                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                        required
-                        />
-                        <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-white transition-colors"
-                        >
-                        {showConfirmPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                        ) : (
-                            <Eye className="w-5 h-5" />
-                        )}
-                        </button>
-                    </div>
-                    </div>
-                </div>
-
-                {error && (
-                    <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-500/20 rounded-lg px-3 py-2">
-                    {error}
-                    </p>
-                )}
-
-                {successMessage && (
-                    <p className="text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-500/20 rounded-lg px-3 py-2">
-                    {successMessage}
-                    </p>
-                )}
-
-                <Button
-                    type="submit"
-                    className="w-full bg-ionian-blue hover:bg-blue-600 text-white font-semibold py-3 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 transition-all"
-                    disabled={loading}
-                >
-                    {loading ? "Creating account..." : "Create Account"}
-                </Button>
-
-                <div className="relative mt-4">
-                    <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-200 dark:border-white/10" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-slate-50 dark:bg-surface/50 px-2 text-slate-500 dark:text-gray-400 rounded-full">
-                        Or continue with
-                    </span>
-                    </div>
-                </div>
-
-                <div className="mt-4">
-                    <GoogleSignInButton onSuccess={handleGoogleSuccess} />
-                </div>
-
-                <p className="text-center text-xs text-slate-500 dark:text-gray-400 mt-4 transition-colors">
-                    By pressing sign up you accept the{" "}
-                    <span
-                    onClick={() => setIsTermsOpen(true)}
-                    className="text-ionian-blue hover:underline cursor-pointer font-medium"
-                    >
-                    terms
-                    </span>
-                    {" "}and{" "}
-                    <span
-                    onClick={() => setIsPrivacyOpen(true)}
-                    className="text-ionian-blue hover:underline cursor-pointer font-medium"
-                    >
-                    privacy policy
-                    </span>
-                </p>
-
-                <p className="text-center text-sm text-slate-500 dark:text-gray-400 transition-colors">
-                    Already have an account?{" "}
-                    <Link
-                    to="/login"
-                    className="text-ionian-blue font-semibold hover:text-blue-600 transition"
-                    >
-                    Sign in
-                    </Link>
-                </p>
-                </form>
-            </div>
-            <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
-            <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
-            <QuickPickerModal 
-                isOpen={showQuickPicker}
-                onClose={() => setShowQuickPicker(false)}
-                onComplete={handleQuickPickerComplete}
-            />
-        </div>
+        <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+        <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+        <QuickPickerModal isOpen={showQuickPicker} onClose={() => setShowQuickPicker(false)} onComplete={handleQuickPickerComplete} />
+      </main>
     </PageLayout>
   );
 }

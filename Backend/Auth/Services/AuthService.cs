@@ -23,6 +23,8 @@ namespace MyIonio
 {
     public class AuthService
     {
+        public const string AccessCookieName = "myionio_access";
+        public const string RefreshCookieName = "myionio_refresh";
         private readonly AppDbContext _context;
         private readonly PasswordHasherauth _passHasher;
         private readonly JwtSettings _jwtSettings;
@@ -51,9 +53,12 @@ namespace MyIonio
 
         public async Task<RegisterResponseDto> AuthRegisterAsync(RegisterRequestDto registerRequestDto)
         {
+            registerRequestDto.Email = NormalizeEmail(registerRequestDto.Email);
+            registerRequestDto.Name = registerRequestDto.Name.Trim();
+            registerRequestDto.Surname = registerRequestDto.Surname.Trim();
 
             //Check if UserExists 
-            if (await _context.Users.AnyAsync(u => u.Email == registerRequestDto.Email))
+            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == registerRequestDto.Email))
             {
                 throw new Exception("This email already exists");
             }
@@ -103,8 +108,11 @@ namespace MyIonio
             RecommendationDto recommendationDto,
             List<UserAnswerDto> userAnswers)
         {
+            registerRequestDto.Email = NormalizeEmail(registerRequestDto.Email);
+            registerRequestDto.Name = registerRequestDto.Name.Trim();
+            registerRequestDto.Surname = registerRequestDto.Surname.Trim();
             // Check if user exists
-            if (await _context.Users.AnyAsync(u => u.Email == registerRequestDto.Email))
+            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == registerRequestDto.Email))
                 throw new Exception("This email already exists");
 
             // Check password match
@@ -171,7 +179,8 @@ namespace MyIonio
 
         public async Task<AuthResponseDto> AuthLoginAsync(LoginRequestDto loginRequestDto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginRequestDto.Email);
+            var normalizedEmail = NormalizeEmail(loginRequestDto.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
             if (user == null || !_passHasher.VerifyPassword(loginRequestDto.Password, user.PasswordHash))
             {
                 throw new Exception("Invalid email or password");
@@ -184,7 +193,8 @@ namespace MyIonio
         
         public async Task<User?> FindByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var normalizedEmail = NormalizeEmail(email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
 
         public async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string idToken)
@@ -209,13 +219,14 @@ namespace MyIonio
             var payload = await ValidateGoogleTokenAsync(idToken);
 
             // 2. Find or Create User
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+            var normalizedEmail = NormalizeEmail(payload.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
             if (user == null)
             {
                 user = new User
                 {
-                    Email = payload.Email,
+                    Email = normalizedEmail,
                     FirstName = payload.GivenName,
                     LastName = payload.FamilyName,
                     CreatedAt = DateTime.UtcNow,
@@ -281,6 +292,11 @@ namespace MyIonio
             return Convert.ToBase64String(randomBytes);
         }
 
+        private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
+        private static string HashRefreshToken(string token) =>
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+
 
         public string GenerateJwtToken(User user)
         {
@@ -321,9 +337,10 @@ namespace MyIonio
 
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
         {
+            var hashedToken = HashRefreshToken(refreshToken);
             var storedToken = await _context.RefreshTokens
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+                .FirstOrDefaultAsync(rt => rt.Token == hashedToken || rt.Token == refreshToken);
 
             if (storedToken == null || !storedToken.IsActive)
                 throw new Exception("Invalid or expired refresh token");
@@ -335,12 +352,23 @@ namespace MyIonio
             return await CreateAuthResponseAsync(storedToken.User);
         }
 
+        public async Task RevokeRefreshTokenAsync(string refreshToken)
+        {
+            var hashedToken = HashRefreshToken(refreshToken);
+            var storedToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == hashedToken || rt.Token == refreshToken);
+            if (storedToken == null) return;
+            storedToken.IsRevoked = true;
+            await _context.SaveChangesAsync();
+        }
+
         private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
         {
             var jwtToken = GenerateJwtToken(user);
+            var rawRefreshToken = GenerateRefreshToken();
             var refreshToken = new RefreshToken
             {
-                Token = GenerateRefreshToken(),
+                Token = HashRefreshToken(rawRefreshToken),
                 UserId = user.Id,
                 Expires = DateTime.UtcNow.AddDays(7)
             };
@@ -348,20 +376,12 @@ namespace MyIonio
             _context.RefreshTokens.Add(refreshToken);
             await _context.SaveChangesAsync();
 
-            // Set HTTP-only cookie for extra security layer
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true, // Assumes HTTPS in production
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddHours(_jwtSettings.ExpiryHours)
-            };
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append("jwt", jwtToken, cookieOptions);
+            SetAuthCookies(jwtToken, rawRefreshToken);
 
             return new AuthResponseDto
             {
                 Token = jwtToken,
-                RefreshToken = refreshToken.Token,
+                RefreshToken = null,
                 Email = user.Email,
                 FirstName = user.FirstName ?? "",
                 LastName = user.LastName ?? "",
@@ -371,6 +391,39 @@ namespace MyIonio
                 Major = user.Major,
                 Minor = user.Minor
             };
+        }
+
+        private void SetAuthCookies(string jwtToken, string refreshToken)
+        {
+            var response = _httpContextAccessor.HttpContext?.Response;
+            if (response == null) return;
+
+            var secure = _httpContextAccessor.HttpContext?.Request.IsHttps ?? true;
+            response.Cookies.Append(AccessCookieName, jwtToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = secure,
+                SameSite = SameSiteMode.Lax,
+                Path = "/api",
+                Expires = DateTimeOffset.UtcNow.AddHours(_jwtSettings.ExpiryHours)
+            });
+            response.Cookies.Append(RefreshCookieName, refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = secure,
+                SameSite = SameSiteMode.Lax,
+                Path = "/api/auth",
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+        }
+
+        public void ClearAuthCookies()
+        {
+            var response = _httpContextAccessor.HttpContext?.Response;
+            if (response == null) return;
+            response.Cookies.Delete(AccessCookieName, new CookieOptions { Path = "/api" });
+            response.Cookies.Delete(RefreshCookieName, new CookieOptions { Path = "/api/auth" });
+            response.Cookies.Delete("jwt", new CookieOptions { Path = "/" });
         }
 
 

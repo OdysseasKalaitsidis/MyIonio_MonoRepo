@@ -1,14 +1,14 @@
 import { User, Moon, Sun, LogOut } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../../app/store";
+import type { AppDispatch, RootState } from "../../app/store";
 import { useEffect, useState, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, Transition } from "@headlessui/react";
-import { logout } from "../../features/auth/authSlice";
+import { signOut } from "../../features/auth/authSlice";
 
 export function HUDNavbar() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -78,8 +78,8 @@ export function HUDNavbar() {
                   <Menu.Item>
                     {({ active }) => (
                       <button
-                        onClick={() => {
-                          dispatch(logout());
+                        onClick={async () => {
+                          await dispatch(signOut());
                           navigate("/");
                         }}
                         className={`${

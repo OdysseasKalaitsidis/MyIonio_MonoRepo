@@ -9,6 +9,7 @@ namespace MyIonio.Controllers
 {
     [Route("api/auth")]
     [ApiController]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -65,6 +66,7 @@ namespace MyIonio.Controllers
             }
         }
         [HttpPost("login")]
+        [EnableRateLimiting("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
             if (dto == null)
@@ -79,29 +81,42 @@ namespace MyIonio.Controllers
             {
                 return Unauthorized(new { message = "Invalid credentials." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { message = "Login failed due to a server error." });
             }
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto dto)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshRequestDto? dto)
         {
-            if (dto == null || string.IsNullOrEmpty(dto.RefreshToken))
+            var refreshToken = Request.Cookies[AuthService.RefreshCookieName] ?? dto?.RefreshToken;
+            if (string.IsNullOrWhiteSpace(refreshToken))
                 return BadRequest("Refresh token missing.");
 
             try
             {
-                var result = await _authService.RefreshTokenAsync(dto.RefreshToken);
+                var result = await _authService.RefreshTokenAsync(refreshToken);
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(new { message = ex.Message });
+                _authService.ClearAuthCookies();
+                return Unauthorized(new { message = "Session expired. Please sign in again." });
             }
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies[AuthService.RefreshCookieName];
+            if (!string.IsNullOrWhiteSpace(refreshToken))
+                await _authService.RevokeRefreshTokenAsync(refreshToken);
+            _authService.ClearAuthCookies();
+            return NoContent();
+        }
         [HttpPost("google-login")]
+        [EnableRateLimiting("Login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
         {
             try
@@ -119,9 +134,9 @@ namespace MyIonio.Controllers
             {
                 return Unauthorized(new { message = "Invalid Google Token." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, new { message = "Google authentication failed." });
             }
         }
         
@@ -141,9 +156,9 @@ namespace MyIonio.Controllers
                     dto.Recommendation);
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new { message = "Google registration failed." });
             }
         }
 
@@ -170,4 +185,3 @@ namespace MyIonio.Controllers
         }
     }
 }
-

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthProfile, clearLegacyAuthStorage, getLegacyRefreshToken } from "../features/auth/authStorage";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://api.myionio.site/api";
 
@@ -10,27 +11,15 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor to add the auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason: unknown) => void }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error?: unknown) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve();
     }
   });
   failedQueue = [];
@@ -42,45 +31,41 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized and ensure we don't loop indefinitely
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const requestUrl = String(originalRequest?.url ?? "");
+    const isSessionEndpoint = [
+      "/auth/login",
+      "/auth/google-login",
+      "/auth/google-register",
+      "/auth/register",
+      "/auth/register-with-test",
+      "/auth/refresh-token",
+      "/auth/logout",
+    ].some((path) => requestUrl.includes(path));
+
+    // Auth endpoints report their own failures; only protected API calls may refresh.
+    if (error.response?.status === 401 && !originalRequest._retry && !isSessionEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
+          .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        handleLogout();
-        return Promise.reject(error);
-      }
-
       try {
         // Use standard axios to avoid interceptors on the refresh call
-        const { data } = await axios.post(`${API_URL}/auth/refresh-token`, {
-          refreshToken,
-        });
-
-        const { token, refreshToken: newRefreshToken } = data;
-        localStorage.setItem("token", token);
-        localStorage.setItem("refreshToken", newRefreshToken);
-
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-
-        processQueue(null, token);
+        const legacyRefreshToken = getLegacyRefreshToken();
+        await axios.post(`${API_URL}/auth/refresh-token`, legacyRefreshToken
+          ? { refreshToken: legacyRefreshToken }
+          : {}, { withCredentials: true });
+        clearLegacyAuthStorage(true);
+        processQueue();
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         handleLogout();
         return Promise.reject(refreshError);
       } finally {
@@ -93,9 +78,7 @@ api.interceptors.response.use(
 );
 
 function handleLogout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user");
+  clearAuthProfile();
   if (typeof window !== "undefined") {
     window.location.href = "/login";
   }

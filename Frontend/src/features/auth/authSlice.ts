@@ -1,23 +1,53 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { AxiosError } from "axios";
-import { login, googleLogin, googleRegister } from "./api";
+import { login, googleLogin, googleRegister, logoutSession, refreshSession } from "./api";
 import type { LoginRequest, GoogleLoginRequest, AuthResponse, GoogleRegisterRequest } from "./models";
+import { clearAuthProfile, clearLegacyAuthStorage, getLegacyRefreshToken, loadAuthProfile, saveAuthProfile } from "./authStorage";
 
-let parsedUser: AuthResponse | null = null;
-try {
-  const storedUser = localStorage.getItem("user");
-  parsedUser = storedUser ? (JSON.parse(storedUser) as AuthResponse) : null;
-} catch {
-  parsedUser = null;
-  localStorage.removeItem("user");
-}
+const storedProfile = loadAuthProfile();
 
 const initialState = {
-  user: parsedUser,
-  token: parsedUser?.token ?? null,
-  isAuthenticated: !!parsedUser?.token && !!parsedUser?.userId,
+  user: storedProfile as AuthResponse | null,
+  token: null as string | null,
+  isAuthenticated: false,
+  sessionChecked: false,
   loading: false,
   error: null as string | null,
+};
+
+export const restoreSession = createAsyncThunk<AuthResponse, void, { rejectValue: string }>(
+  "auth/restoreSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      const legacyRefreshToken = getLegacyRefreshToken();
+      const response = await refreshSession(legacyRefreshToken);
+      clearLegacyAuthStorage(true);
+      return response;
+    } catch {
+      clearAuthProfile();
+      return rejectWithValue("No active session");
+    }
+  },
+);
+
+export const signOut = createAsyncThunk("auth/signOut", async () => {
+  try {
+    await logoutSession();
+  } catch {
+    // Local sign-out must still complete when the API is temporarily unavailable.
+  } finally {
+    clearAuthProfile();
+  }
+});
+
+const applyAuthenticated = (state: typeof initialState, response: AuthResponse) => {
+  const profile = saveAuthProfile(response);
+  state.user = profile as AuthResponse;
+  state.token = null;
+  state.isAuthenticated = true;
+  state.sessionChecked = true;
+  state.error = null;
+  state.loading = false;
 };
 
 export const signIn = createAsyncThunk<
@@ -78,16 +108,7 @@ export const registerWithGoogle = createAsyncThunk<
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    logout(state) {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(signIn.pending, (state) => {
@@ -103,17 +124,7 @@ const authSlice = createSlice({
           // DO NOT overwrite userId
         };
 
-        state.user = payload;
-        state.token = payload.token;
-        state.isAuthenticated = !!payload.token && !!payload.userId;
-        state.error = null;
-        state.loading = false;
-
-        localStorage.setItem("user", JSON.stringify(payload));
-        localStorage.setItem("token", payload.token);
-        if (payload.refreshToken) {
-          localStorage.setItem("refreshToken", payload.refreshToken);
-        }
+        applyAuthenticated(state, payload);
 
 
       })
@@ -123,9 +134,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        clearAuthProfile();
       })
       .addCase(loginWithGoogle.pending, (state) => {
         state.loading = true;
@@ -136,16 +145,7 @@ const authSlice = createSlice({
           ...action.payload,
           recommendation: action.payload.recommendation ?? null,
         };
-        state.user = payload;
-        state.token = payload.token;
-        state.isAuthenticated = !!payload.token && !!payload.userId;
-        state.error = null;
-        state.loading = false;
-        localStorage.setItem("user", JSON.stringify(payload));
-        localStorage.setItem("token", payload.token);
-        if (payload.refreshToken) {
-          localStorage.setItem("refreshToken", payload.refreshToken);
-        }
+        applyAuthenticated(state, payload);
       })
       .addCase(loginWithGoogle.rejected, (state, action) => {
         state.loading = false;
@@ -153,9 +153,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        clearAuthProfile();
       })
       .addCase(registerWithGoogle.pending, (state) => {
         state.loading = true;
@@ -166,16 +164,7 @@ const authSlice = createSlice({
           ...action.payload,
           recommendation: action.payload.recommendation ?? null,
         };
-        state.user = payload;
-        state.token = payload.token;
-        state.isAuthenticated = !!payload.token && !!payload.userId;
-        state.error = null;
-        state.loading = false;
-        localStorage.setItem("user", JSON.stringify(payload));
-        localStorage.setItem("token", payload.token);
-        if (payload.refreshToken) {
-          localStorage.setItem("refreshToken", payload.refreshToken);
-        }
+        applyAuthenticated(state, payload);
       })
       .addCase(registerWithGoogle.rejected, (state, action) => {
         state.loading = false;
@@ -183,12 +172,24 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        clearAuthProfile();
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        applyAuthenticated(state, action.payload);
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.sessionChecked = true;
+      })
+      .addCase(signOut.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.sessionChecked = true;
       });
   },
 });
 
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;

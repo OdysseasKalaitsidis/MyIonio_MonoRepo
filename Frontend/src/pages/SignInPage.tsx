@@ -1,145 +1,67 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { signIn } from "../features/auth/authSlice";
 import type { RootState, AppDispatch } from "../app/store";
-import { Button } from "../components/Button";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { PageLayout } from "../components/layout/PageLayout";
 
 export default function SignInPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-
+  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = await dispatch(signIn({ email, password }));
-
-    if (signIn.fulfilled.match(result)) {
-      navigate("/dashboard");
-    }
-  };
-
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    }
+    if (isAuthenticated) navigate("/dashboard", { replace: true });
   }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const result = await dispatch(signIn({ email: email.trim(), password }));
+    if (signIn.fulfilled.match(result)) navigate("/dashboard", { replace: true });
+  };
 
   return (
     <PageLayout>
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
-        {/* Decorative elements - Optional, kept lighter */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-             <div className="absolute -left-[20%] top-[20%] w-[500px] h-[500px] rounded-full bg-ionian-blue/5 dark:bg-ionian-blue/10 blur-[120px]" />
-             <div className="absolute -right-[20%] bottom-[20%] w-[500px] h-[500px] rounded-full bg-blue-400/5 dark:bg-blue-400/10 blur-[120px]" />
-        </div>
+      <main className="mx-auto flex min-h-[calc(100vh-160px)] w-full max-w-md items-center px-5 py-10">
+        <section className="w-full">
+          <Link to="/" className="mb-8 inline-flex text-sm font-medium text-slate-500 hover:text-ionian-blue">← Αρχική</Link>
+          <header className="mb-7">
+            <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Σύνδεση</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Οι επιλογές εξαμήνου και μαθημάτων αυτής της συσκευής παραμένουν αποθηκευμένες.</p>
+          </header>
 
-        <div className="relative w-full max-w-md z-10">
-          <Link to="/" className="inline-flex items-center text-sm text-slate-500 hover:text-ionian-blue dark:text-gray-400 dark:hover:text-white mb-6 transition-colors">
-             <span className="mr-2">←</span> Back to Home
-          </Link>
-          <div className="text-center mb-8 space-y-3">
-            <p className="text-slate-500 dark:text-gray-400 uppercase tracking-[0.3em] text-xs font-semibold">
-              Welcome to
-            </p>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white transition-colors">My Ionio</h1>
-            <p className="text-slate-500 dark:text-gray-400 transition-colors">
-              Sign in to continue your personalized academic journey.
-            </p>
-          </div>
+          <div className="mb-6"><GoogleSignInButton /></div>
+          <div className="mb-6 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />ή με email<span className="h-px flex-1 bg-slate-200 dark:bg-white/10" /></div>
 
-          <form
-            onSubmit={handleLogin}
-            className="bg-white/50 dark:bg-surface/50 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl backdrop-blur-md p-8 space-y-6 transition-all"
-          >
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">Email</label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">
-                Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-gray-500 group-focus-within:text-ionian-blue transition-colors" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 pl-12 pr-12 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-ionian-blue/50 focus:border-transparent transition-all"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-white transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Email</span>
+              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" inputMode="email" maxLength={254}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-ionian-blue focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-900/30" required />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">Κωδικός</span>
+              <span className="relative block">
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" maxLength={128}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-12 text-slate-950 outline-none transition focus:border-ionian-blue focus:ring-4 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:ring-blue-900/30" required />
+                <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 hover:text-slate-700 dark:hover:text-white" aria-label={showPassword ? "Απόκρυψη κωδικού" : "Εμφάνιση κωδικού"}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-500/20 rounded-lg px-3 py-2">
-                {String(error)}
-              </p>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full bg-ionian-blue hover:bg-blue-600 text-white font-semibold py-3 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 transition-all"
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            <div className="flex items-center gap-4 my-2">
-              <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-              <span className="text-xs uppercase text-slate-500 dark:text-gray-400 font-medium">
-                Or continue with
               </span>
-              <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-            </div>
-
-            <GoogleSignInButton />
-
-            <p className="text-center text-sm text-slate-500 dark:text-gray-400 transition-colors">
-              Don’t have an account?{" "}
-              <Link
-                to="/sign-up"
-                className="text-ionian-blue font-semibold hover:text-blue-600 transition"
-              >
-                Create one
-              </Link>
-            </p>
+            </label>
+            {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">Λάθος email ή κωδικός.</p>}
+            <button type="submit" disabled={loading} className="w-full rounded-xl bg-ionian-blue px-4 py-3 font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-60">{loading ? "Σύνδεση…" : "Σύνδεση"}</button>
           </form>
-        </div>
-      </div>
+
+          <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500"><ShieldCheck size={15} />Η συνεδρία προστατεύεται με HttpOnly cookies.</div>
+          <p className="mt-7 text-center text-sm text-slate-500">Δεν έχεις λογαριασμό;{" "}<Link to="/sign-up" className="font-bold text-ionian-blue hover:underline">Εγγραφή</Link></p>
+        </section>
+      </main>
     </PageLayout>
   );
 }

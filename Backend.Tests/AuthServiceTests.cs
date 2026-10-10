@@ -18,6 +18,7 @@ namespace MyIonio.Tests
         private readonly Mock<IOptions<JwtSettings>> _mockJwtOptions;
         private readonly Mock<IConfiguration> _mockConfig;
         private readonly Mock<IHttpContextAccessor> _mockHttpAccessor;
+        private readonly DefaultHttpContext _httpContext;
         private readonly AuthService _service;
 
         public AuthServiceTests()
@@ -33,6 +34,9 @@ namespace MyIonio.Tests
             _mockJwtOptions = new Mock<IOptions<JwtSettings>>();
             _mockConfig = new Mock<IConfiguration>();
             _mockHttpAccessor = new Mock<IHttpContextAccessor>();
+            _httpContext = new DefaultHttpContext();
+            _httpContext.Request.Scheme = "https";
+            _mockHttpAccessor.SetupGet(a => a.HttpContext).Returns(_httpContext);
 
             _mockJwtOptions.Setup(o => o.Value).Returns(new JwtSettings 
             { 
@@ -86,7 +90,11 @@ namespace MyIonio.Tests
             {
                 Email = "duplicate@example.com",
                 Password = "Password123!",
-                ConfirmPassword = "Password123!"
+                ConfirmPassword = "Password123!",
+                Name = "Duplicate",
+                Surname = "User",
+                Semester = "Α",
+                Department = "Τμήμα Πληροφορικής"
             };
 
             // Act & Assert
@@ -110,5 +118,64 @@ namespace MyIonio.Tests
             var exception = await Assert.ThrowsAsync<Exception>(() => _service.AuthLoginAsync(request));
             Assert.Equal("Invalid email or password", exception.Message);
         }
+
+        [Fact]
+        public async Task AuthRegisterAsync_ShouldNormalizeEmailAndNames()
+        {
+            var request = new RegisterRequestDto
+            {
+                Email = "  Student@Example.COM ",
+                Password = "Password!",
+                ConfirmPassword = "Password!",
+                Name = "  Ada ",
+                Surname = " Lovelace  ",
+                Semester = "Α",
+                Department = "Τμήμα Πληροφορικής"
+            };
+            _mockPassHasher.Setup(h => h.HashPassword(It.IsAny<string>())).Returns("hashed_password");
+
+            await _service.AuthRegisterAsync(request);
+
+            var user = await _context.Users.SingleAsync();
+            Assert.Equal("student@example.com", user.Email);
+            Assert.Equal("Ada", user.FirstName);
+            Assert.Equal("Lovelace", user.LastName);
+        }
+
+        [Fact]
+        public async Task AuthLoginAsync_ShouldStoreHashedRefreshTokenAndSetHttpOnlyCookies()
+        {
+            var user = new User
+            {
+                Email = "student@example.com",
+                PasswordHash = "stored_hash",
+                FirstName = "Ada",
+                LastName = "Lovelace",
+                Semester = "Α",
+                Department = "Τμήμα Πληροφορικής"
+            };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            _mockPassHasher.Setup(h => h.VerifyPassword("Password!", "stored_hash")).Returns(true);
+
+            var response = await _service.AuthLoginAsync(new LoginRequestDto
+            {
+                Email = " STUDENT@EXAMPLE.COM ",
+                Password = "Password!"
+            });
+
+            var storedRefreshToken = await _context.RefreshTokens.SingleAsync();
+            Assert.Null(response.RefreshToken);
+            Assert.Equal(64, storedRefreshToken.Token.Length);
+            Assert.All(storedRefreshToken.Token, character => Assert.True(Uri.IsHexDigit(character)));
+
+            var setCookie = _httpContext.Response.Headers["Set-Cookie"].ToString();
+            Assert.Contains($"{AuthService.AccessCookieName}=", setCookie);
+            Assert.Contains($"{AuthService.RefreshCookieName}=", setCookie);
+            Assert.Contains("httponly", setCookie, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("samesite=lax", setCookie, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("secure", setCookie, StringComparison.OrdinalIgnoreCase);
+        }
+
     }
 }

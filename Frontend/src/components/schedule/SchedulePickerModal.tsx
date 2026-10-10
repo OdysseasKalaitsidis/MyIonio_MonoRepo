@@ -65,7 +65,7 @@ const legacyCatalog = (rows: ScheduleResponseDto[], semester: string, major = ""
 export function SchedulePickerModal({ isOpen, onClose }: Props) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const token = useAppSelector((state: any) => state.auth.token);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const [step, setStep] = useState<Step>("semester");
   const [semester, setSemester] = useState("");
   const [major, setMajor] = useState("");
@@ -128,7 +128,7 @@ export function SchedulePickerModal({ isOpen, onClose }: Props) {
     dispatch(setPreferences({ department: DEPARTMENT, departmentId, semester: targetSemester, semesterId: targetSemesterId }));
     dispatch(updateCoursePreferences({ major: nextMajor || undefined, minor: nextMinor || undefined }));
     dispatch(setSelectedCourses(names)); dispatch(completeOnboarding());
-    if (token) await saveUserCourses({ semester: targetSemester, courses: names, courseIds: stableIds, major: nextMajor || undefined, minor: nextMinor || undefined });
+    if (isAuthenticated) await saveUserCourses({ semester: targetSemester, courses: names, courseIds: stableIds, major: nextMajor || undefined, minor: nextMinor || undefined });
     onClose(); navigate("/schedule");
   };
 
