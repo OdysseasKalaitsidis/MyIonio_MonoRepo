@@ -161,7 +161,7 @@ namespace MyIonio
 
             return new RegisterResponseWithTestDto
             {
-                Token = authResponse.Token,
+                Token = null,
                 UserId = user.Id,
                 Recommendation = new RecommendationDto
                 {
@@ -380,7 +380,7 @@ namespace MyIonio
 
             return new AuthResponseDto
             {
-                Token = jwtToken,
+                Token = null,
                 RefreshToken = null,
                 Email = user.Email,
                 FirstName = user.FirstName ?? "",

@@ -67,6 +67,6 @@ export interface RegisterRequestWithTest {
 
 export interface RegisterResponseWithTest {
   userid: string;
-  token: string;
+  token?: string | null;
   RecommendationDto?: RecommendationDto[];
 }

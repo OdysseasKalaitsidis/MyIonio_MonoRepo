@@ -165,6 +165,7 @@ namespace MyIonio.Tests
             });
 
             var storedRefreshToken = await _context.RefreshTokens.SingleAsync();
+            Assert.Null(response.Token);
             Assert.Null(response.RefreshToken);
             Assert.Equal(64, storedRefreshToken.Token.Length);
             Assert.All(storedRefreshToken.Token, character => Assert.True(Uri.IsHexDigit(character)));
