@@ -19,12 +19,14 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Google.Apis.Auth;
+using MyIonio.Auth;
 namespace MyIonio
 {
     public class AuthService
     {
         public const string AccessCookieName = "myionio_access";
         public const string RefreshCookieName = "myionio_refresh";
+        public const string GoogleNonceCookieName = "myionio_google_nonce";
         private readonly AppDbContext _context;
         private readonly PasswordHasherauth _passHasher;
         private readonly JwtSettings _jwtSettings;
@@ -53,6 +55,8 @@ namespace MyIonio
 
         public async Task<RegisterResponseDto> AuthRegisterAsync(RegisterRequestDto registerRequestDto)
         {
+            EnsureLegalAcceptance(registerRequestDto.AcceptTerms, registerRequestDto.AcknowledgePrivacy, registerRequestDto.TermsVersion, registerRequestDto.PrivacyVersion);
+            ValidateAcademicProfile(registerRequestDto.Semester, registerRequestDto.Department);
             registerRequestDto.Email = NormalizeEmail(registerRequestDto.Email);
             registerRequestDto.Name = registerRequestDto.Name.Trim();
             registerRequestDto.Surname = registerRequestDto.Surname.Trim();
@@ -84,9 +88,11 @@ namespace MyIonio
                 PasswordHash = hash,
                 Semester = registerRequestDto.Semester,
                 Department = registerRequestDto.Department,
-                HasCompletedTest = false
-                
-
+                HasCompletedTest = false,
+                AcceptedTermsVersion = LegalDocumentVersions.Terms,
+                TermsAcceptedAt = DateTime.UtcNow,
+                AcknowledgedPrivacyVersion = LegalDocumentVersions.Privacy,
+                PrivacyAcknowledgedAt = DateTime.UtcNow
             }; 
 
             // Add user to DB
@@ -108,6 +114,8 @@ namespace MyIonio
             RecommendationDto recommendationDto,
             List<UserAnswerDto> userAnswers)
         {
+            EnsureLegalAcceptance(registerRequestDto.AcceptTerms, registerRequestDto.AcknowledgePrivacy, registerRequestDto.TermsVersion, registerRequestDto.PrivacyVersion);
+            ValidateAcademicProfile(registerRequestDto.Semester, registerRequestDto.Department);
             registerRequestDto.Email = NormalizeEmail(registerRequestDto.Email);
             registerRequestDto.Name = registerRequestDto.Name.Trim();
             registerRequestDto.Surname = registerRequestDto.Surname.Trim();
@@ -133,6 +141,10 @@ namespace MyIonio
                 Department = registerRequestDto.Department,
                 HasCompletedTest = true,
                 CreatedAt = DateTime.UtcNow,
+                AcceptedTermsVersion = LegalDocumentVersions.Terms,
+                TermsAcceptedAt = DateTime.UtcNow,
+                AcknowledgedPrivacyVersion = LegalDocumentVersions.Privacy,
+                PrivacyAcknowledgedAt = DateTime.UtcNow,
             };
 
             _context.Users.Add(user);
@@ -196,58 +208,138 @@ namespace MyIonio
             var normalizedEmail = NormalizeEmail(email);
             return await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
+        public string IssueGoogleNonce()
+        {
+            var nonce = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+            var response = _httpContextAccessor.HttpContext?.Response;
+            if (response == null) throw new InvalidOperationException("No HTTP response is available.");
+            response.Cookies.Append(GoogleNonceCookieName, nonce, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/api/auth",
+                MaxAge = TimeSpan.FromMinutes(10),
+                IsEssential = true
+            });
+            return nonce;
+        }
 
-        public async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string idToken)
+        public bool ConsumeGoogleNonce(string requestedNonce)
+        {
+            var context = _httpContextAccessor.HttpContext;
+            var storedNonce = context?.Request.Cookies[GoogleNonceCookieName];
+            context?.Response.Cookies.Delete(GoogleNonceCookieName, new CookieOptions { Path = "/api/auth" });
+            return NonceMatches(storedNonce, requestedNonce);
+        }
+
+
+        public async Task<GoogleJsonWebSignature.Payload> ValidateGoogleTokenAsync(string idToken, string nonce)
         {
             var clientId = _config["Google:ClientId"];
             if (string.IsNullOrEmpty(clientId))
-            {
                 throw new InvalidOperationException("Google Client ID is not configured on the server.");
-            }
 
-            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = new List<string>() { clientId }
-            };
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                Audience = new List<string> { clientId }
+            });
+
+            if (payload.EmailVerified != true || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Subject))
+                throw new InvalidGoogleIdentityException();
+
+            if (!NonceMatches(payload.Nonce, nonce))
+                throw new InvalidGoogleIdentityException();
+
             return payload;
         }
 
-        public async Task<AuthResponseDto> HandleGoogleAuthAsync(string idToken, string? semester = null, string? department = null, string? major = null, string? minor = null, List<string>? enrolledCourses = null, RecommendationDto? recommendation = null)
+        public async Task<AuthResponseDto> HandleGoogleAuthAsync(
+            string idToken,
+            string nonce,
+            bool allowRegistration,
+            string? semester = null,
+            string? department = null,
+            string? major = null,
+            string? minor = null,
+            List<string>? enrolledCourses = null,
+            RecommendationDto? recommendation = null,
+            bool acceptTerms = false,
+            bool acknowledgePrivacy = false,
+            string? termsVersion = null,
+            string? privacyVersion = null)
         {
-            // 1. Validate Token
-            var payload = await ValidateGoogleTokenAsync(idToken);
+            var payload = await ValidateGoogleTokenAsync(idToken, nonce);
+            return await HandleVerifiedGoogleIdentityAsync(payload, allowRegistration, semester, department, major, minor, enrolledCourses, recommendation, acceptTerms, acknowledgePrivacy, termsVersion, privacyVersion);
+        }
 
-            // 2. Find or Create User
+        public async Task<AuthResponseDto> HandleVerifiedGoogleIdentityAsync(
+            GoogleJsonWebSignature.Payload payload,
+            bool allowRegistration,
+            string? semester = null,
+            string? department = null,
+            string? major = null,
+            string? minor = null,
+            List<string>? enrolledCourses = null,
+            RecommendationDto? recommendation = null,
+            bool acceptTerms = false,
+            bool acknowledgePrivacy = false,
+            string? termsVersion = null,
+            string? privacyVersion = null)
+        {
+            if (payload.EmailVerified != true || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Subject))
+                throw new InvalidGoogleIdentityException();
+
             var normalizedEmail = NormalizeEmail(payload.Email);
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.GoogleSubject == payload.Subject);
 
             if (user == null)
             {
+                var emailMatch = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+                if (emailMatch != null)
+                {
+                    if (!string.IsNullOrEmpty(emailMatch.GoogleSubject) || !emailMatch.PasswordHash.StartsWith("GOOGLE_USER_", StringComparison.Ordinal))
+                        throw new GoogleAccountLinkRequiredException();
+
+                    emailMatch.GoogleSubject = payload.Subject;
+                    user = emailMatch;
+                }
+            }
+
+            if (user == null && !allowRegistration)
+                throw new GoogleAccountNotRegisteredException();
+
+            if (user == null)
+            {
+                EnsureLegalAcceptance(acceptTerms, acknowledgePrivacy, termsVersion, privacyVersion);
+                ValidateAcademicProfile(semester, department);
+                var now = DateTime.UtcNow;
                 user = new User
                 {
                     Email = normalizedEmail,
-                    FirstName = payload.GivenName,
-                    LastName = payload.FamilyName,
-                    CreatedAt = DateTime.UtcNow,
+                    GoogleSubject = payload.Subject,
+                    FirstName = (payload.GivenName ?? "Student").Trim()[..Math.Min((payload.GivenName ?? "Student").Trim().Length, 50)],
+                    LastName = (payload.FamilyName ?? "").Trim()[..Math.Min((payload.FamilyName ?? "").Trim().Length, 50)],
+                    CreatedAt = now,
                     PasswordHash = "GOOGLE_USER_" + Guid.NewGuid().ToString("N"),
                     Semester = semester,
                     Department = department,
                     Major = major,
                     Minor = minor,
-                    HasCompletedTest = recommendation != null
+                    HasCompletedTest = recommendation != null,
+                    AcceptedTermsVersion = LegalDocumentVersions.Terms,
+                    TermsAcceptedAt = now,
+                    AcknowledgedPrivacyVersion = LegalDocumentVersions.Privacy,
+                    PrivacyAcknowledgedAt = now
                 };
 
-                if (enrolledCourses != null && enrolledCourses.Any() && !string.IsNullOrEmpty(semester))
-                {
-                    user.EnrolledCourses = new Dictionary<string, List<string>> { { semester, enrolledCourses } };
-                }
+                if (enrolledCourses?.Any() == true && !string.IsNullOrEmpty(semester))
+                    user.EnrolledCourses = new Dictionary<string, List<string>> { { semester, enrolledCourses.Distinct().Take(100).ToList() } };
 
                 _context.Users.Add(user);
-                
                 if (recommendation != null)
                 {
-                    var userRec = new UserRecommendation
+                    _context.UserRecommendation.Add(new UserRecommendation
                     {
                         UserId = user.Id,
                         PrimaryMajor = recommendation.PrimaryMajor,
@@ -257,29 +349,60 @@ namespace MyIonio
                         ConfidenceLevel = recommendation.ConfidenceLevel,
                         ProfileType = recommendation.ProfileType,
                         Reasoning = recommendation.Reasoning,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.UserRecommendation.Add(userRec);
+                        CreatedAt = now
+                    });
                 }
             }
-            else
+            else if (allowRegistration)
             {
-                // Update existing user preferences if provided
+                EnsureLegalAcceptance(acceptTerms, acknowledgePrivacy, termsVersion, privacyVersion);
+                ValidateAcademicProfile(semester, department);
+                user.AcceptedTermsVersion ??= LegalDocumentVersions.Terms;
+                user.TermsAcceptedAt ??= DateTime.UtcNow;
+                user.AcknowledgedPrivacyVersion ??= LegalDocumentVersions.Privacy;
+                user.PrivacyAcknowledgedAt ??= DateTime.UtcNow;
+            }
+
+            if (user.GoogleSubject != payload.Subject)
+                throw new InvalidGoogleIdentityException();
+
+            if (allowRegistration)
+            {
                 if (!string.IsNullOrEmpty(semester)) user.Semester = semester;
                 if (!string.IsNullOrEmpty(department)) user.Department = department;
                 if (!string.IsNullOrEmpty(major)) user.Major = major;
                 if (!string.IsNullOrEmpty(minor)) user.Minor = minor;
                 if (recommendation != null) user.HasCompletedTest = true;
-
-                if (enrolledCourses != null && enrolledCourses.Any() && !string.IsNullOrEmpty(semester))
-                {
-                    user.EnrolledCourses ??= new Dictionary<string, List<string>>();
-                    user.EnrolledCourses[semester] = enrolledCourses;
-                }
             }
 
             await _context.SaveChangesAsync();
             return await CreateAuthResponseAsync(user);
+        }
+
+        private static bool NonceMatches(string? tokenNonce, string requestedNonce)
+        {
+            if (string.IsNullOrWhiteSpace(tokenNonce) || string.IsNullOrWhiteSpace(requestedNonce)) return false;
+            var left = Encoding.UTF8.GetBytes(tokenNonce);
+            var right = Encoding.UTF8.GetBytes(requestedNonce);
+            return left.Length == right.Length && CryptographicOperations.FixedTimeEquals(left, right);
+        }
+
+        private static void EnsureLegalAcceptance(bool acceptTerms, bool acknowledgePrivacy, string? termsVersion, string? privacyVersion)
+        {
+            if (!acceptTerms || !acknowledgePrivacy || termsVersion != LegalDocumentVersions.Terms || privacyVersion != LegalDocumentVersions.Privacy)
+                throw new LegalAcceptanceRequiredException();
+        }
+
+        private static void ValidateAcademicProfile(string? semester, string? department)
+        {
+            var semesters = new HashSet<string> { "Α", "Γ", "Ε", "Ζ" };
+            var departments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Informatics", "Department of Informatics", "Tourism", "Translation",
+                "Τμήμα Πληροφορικής", "Τμήμα Τουρισμού", "Τμήμα Ξένων Γλωσσών, Μετάφρασης και Διερμηνείας"
+            };
+            if (semester == null || !semesters.Contains(semester) || department == null || !departments.Contains(department))
+                throw new InvalidAcademicProfileException();
         }
 
 
@@ -398,7 +521,7 @@ namespace MyIonio
             var response = _httpContextAccessor.HttpContext?.Response;
             if (response == null) return;
 
-            var secure = _httpContextAccessor.HttpContext?.Request.IsHttps ?? true;
+            const bool secure = true;
             response.Cookies.Append(AccessCookieName, jwtToken, new CookieOptions
             {
                 HttpOnly = true,
@@ -424,6 +547,7 @@ namespace MyIonio
             response.Cookies.Delete(AccessCookieName, new CookieOptions { Path = "/api" });
             response.Cookies.Delete(RefreshCookieName, new CookieOptions { Path = "/api/auth" });
             response.Cookies.Delete("jwt", new CookieOptions { Path = "/" });
+            response.Cookies.Delete(GoogleNonceCookieName, new CookieOptions { Path = "/api/auth" });
         }
 
 

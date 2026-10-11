@@ -7,40 +7,24 @@ namespace MyIonio.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger) { _next = next; _logger = logger; }
         public async Task InvokeAsync(HttpContext context)
         {
-            try
-            {
-                await _next(context);
-            }
+            try { await _next(context); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception has occurred.");
-                await HandleExceptionAsync(context, ex);
+                var incidentId = context.TraceIdentifier;
+                _logger.LogError(ex, "Unhandled exception. Incident {IncidentId}", incidentId);
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.Headers.CacheControl = "no-store";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    statusCode = context.Response.StatusCode,
+                    message = "Unexpected server error.",
+                    incidentId
+                }));
             }
-        }
-
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
-        {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            var response = new
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = "Internal Server Error from the custom middleware.",
-                Detailed = exception.Message // In production, you might want to hide this
-            };
-
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
         }
     }
 }

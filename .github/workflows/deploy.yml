@@ -28,6 +28,12 @@ jobs:
       - name: Frontend Build check
         run: npm run build
         working-directory: ./Frontend
+      - name: Frontend tests
+        run: npm test -- --run
+        working-directory: ./Frontend
+      - name: Frontend production dependency audit
+        run: npm audit --omit=dev --audit-level=critical
+        working-directory: ./Frontend
 
       # Backend Checks
       - name: Setup .NET
@@ -39,6 +45,9 @@ jobs:
         working-directory: ./Backend
       - name: Backend Build check
         run: dotnet build --no-restore
+        working-directory: ./Backend
+      - name: Backend dependency audit
+        run: dotnet list package --vulnerable --include-transitive
         working-directory: ./Backend
       - name: Restore Backend Tests
         run: dotnet restore
@@ -120,6 +129,7 @@ jobs:
             VITE_API_URL=https://api.myionio.site/api
             VITE_AI_URL=https://ai.myionio.site
             VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            VITE_ALLOW_PASSWORD_REGISTRATION=false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   build-ai:
@@ -188,6 +198,7 @@ jobs:
             backup_tmp=$(mktemp)
             sudo docker compose exec -T db pg_dump -U postgres -d postgres -Fc > "${backup_tmp}"
             sudo mv "${backup_tmp}" ".deploy-backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).dump"
+            sudo find .deploy-backups -maxdepth 1 -type f -name 'postgres-*.dump' -mtime +30 -delete
 
             # Update source code. The ignored production .env remains untouched.
             sudo git fetch origin master

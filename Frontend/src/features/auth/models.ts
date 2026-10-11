@@ -7,6 +7,7 @@ export interface LoginRequest {
 
 export interface GoogleLoginRequest {
   idToken: string;
+  nonce: string;
   semester?: string;
   major?: string;
   minor?: string;
@@ -16,9 +17,14 @@ export interface GoogleLoginRequest {
 
 export interface GoogleRegisterRequest {
   idToken: string;
+  nonce: string;
   department: string;
   semester: string;
   recommendation: RecommendationDto | null;
+  acceptTerms: boolean;
+  acknowledgePrivacy: boolean;
+  termsVersion: string;
+  privacyVersion: string;
 }
 
 export interface AuthResponse {
@@ -43,6 +49,10 @@ export interface RegisterRequest {
   semester: string;
   password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
+  acknowledgePrivacy: boolean;
+  termsVersion: string;
+  privacyVersion: string;
 }
 
 export interface RegisterResponse {

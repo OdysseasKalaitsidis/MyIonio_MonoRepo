@@ -82,6 +82,18 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(15)
             }));
 
+    options.AddPolicy<string>("Reviews", httpContext =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                QueueLimit = 0,
+                Window = TimeSpan.FromHours(24)
+            }));
+
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
@@ -188,6 +200,7 @@ app.UseCors("AllowFrontend");
 app.UseOutputCache();
 
 app.UseMiddleware<MyIonio.Middleware.ExceptionHandlingMiddleware>();
+app.UseMiddleware<MyIonio.Middleware.CookieOriginValidationMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -209,7 +222,7 @@ app.UseAuthorization();
 
 // Prometheus Metrics
 app.UseHttpMetrics(); 
-app.MapMetrics();
+app.MapMetrics().RequireHost("backend", "localhost", "127.0.0.1");
 
 app.MapControllers();
 
@@ -231,6 +244,7 @@ for (int i = 0; i < 5; i++)
                 Console.WriteLine("Migrations applied successfully.");
             }
 
+            await db.RefreshTokens.Where(token => token.Expires <= DateTime.UtcNow || token.IsRevoked).ExecuteDeleteAsync();
             await OfficialCurriculumCatalog.SeedAsync(db);
             Console.WriteLine("Official 2026-2027 curriculum catalog is synchronized.");
             await OfficialClassScheduleCatalog.SeedAsync(db);

@@ -54,7 +54,7 @@ export default function SignInPage() {
                 </button>
               </span>
             </label>
-            {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">Λάθος email ή κωδικός.</p>}
+            {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
             <button type="submit" disabled={loading} className="w-full rounded-xl bg-ionian-blue px-4 py-3 font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-60">{loading ? "Σύνδεση…" : "Σύνδεση"}</button>
           </form>
 

@@ -1,45 +1,6 @@
-import { useState } from 'react';
-import { useConsent } from '../../context/ConsentContext';
-import { TermsModal } from '../TermsModal';
-import { PrivacyPolicyModal } from '../PrivacyPolicyModal';
-
+import { Link } from "react-router-dom";
+import { useConsent } from "../../context/ConsentContext";
 export function Footer() {
   const { resetConsent } = useConsent();
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
-
-  return (
-    <>
-      <footer className="w-full bg-slate-50 dark:bg-black/20 border-t border-slate-200 dark:border-white/5 py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 dark:text-gray-500">
-          <div>
-            &copy; {new Date().getFullYear()} Ionio Portal. Educational Use Only.
-          </div>
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => setIsTermsOpen(true)}
-              className="hover:text-ionian-blue dark:hover:text-white transition-colors"
-            >
-              Terms of Service
-            </button>
-            <button 
-              onClick={() => setIsPrivacyOpen(true)}
-              className="hover:text-ionian-blue dark:hover:text-white transition-colors"
-            >
-              Privacy Policy
-            </button>
-            <button 
-              onClick={resetConsent}
-              className="hover:text-ionian-blue dark:hover:text-white transition-colors"
-            >
-              Manage Cookies
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
-      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
-    </>
-  );
+  return <footer className="mt-12 w-full border-t border-slate-200 bg-slate-50 py-8 dark:border-white/5 dark:bg-black/20"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm text-slate-500 sm:px-6 md:flex-row"><p>© {new Date().getFullYear()} MyIonio · Ανεξάρτητο φοιτητικό project</p><nav aria-label="Νομικές πληροφορίες" className="flex flex-wrap justify-center gap-5"><Link to="/terms" className="hover:text-ionian-blue">Όροι</Link><Link to="/privacy" className="hover:text-ionian-blue">Απόρρητο</Link><Link to="/safety" className="hover:text-ionian-blue">Ασφάλεια & αναφορές</Link><button onClick={resetConsent} className="hover:text-ionian-blue">Ενημέρωση αποθήκευσης</button></nav></div></footer>;
 }

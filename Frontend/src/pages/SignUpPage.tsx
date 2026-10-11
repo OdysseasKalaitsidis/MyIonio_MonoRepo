@@ -8,12 +8,13 @@ import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { registerUser, registerUserWithTest } from "../features/auth/api";
 import { registerWithGoogle, signIn } from "../features/auth/authSlice";
 import type { RegisterRequest } from "../features/auth/models";
-import { TermsModal } from "../components/TermsModal";
-import { PrivacyPolicyModal } from "../components/PrivacyPolicyModal";
 import { QuickPickerModal } from "./dashboard/QuickPickerModal";
 import { ACTIVE_SEMESTERS, DEPARTMENTS_LIST } from "../features/preferences/constants";
 import { useQuizData } from "../hooks/useQuizData";
 import { PageLayout } from "../components/layout/PageLayout";
+import { PRIVACY_VERSION, TERMS_VERSION } from "../legal/versions";
+
+const allowPasswordRegistration = import.meta.env.VITE_ALLOW_PASSWORD_REGISTRATION === "true";
 
 export default function SignUpPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -30,26 +31,33 @@ export default function SignUpPage() {
     semester: preferences.semester ? String(preferences.semester) : activeSemesters[0],
     password: "",
     confirmPassword: "",
+    acceptTerms: false,
+    acknowledgePrivacy: false,
+    termsVersion: TERMS_VERSION,
+    privacyVersion: PRIVACY_VERSION,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
-  const [googleIdToken, setGoogleIdToken] = useState<string | null>(null);
+  const [googleCredential, setGoogleCredential] = useState<{ idToken: string; nonce: string } | null>(null);
 
   const shouldSubmitWithTest = Boolean(quizRecommendation && quizUserAnswers?.length);
   const hasDeviceProfile = Boolean(preferences.department && preferences.semester);
 
-  const finishGoogleRegistration = async (idToken: string, department: string, semester: string) => {
+  const finishGoogleRegistration = async (idToken: string, nonce: string, department: string, semester: string) => {
     setLoading(true);
     setError(null);
     const result = await dispatch(registerWithGoogle({
       idToken,
+      nonce,
       department,
       semester,
       recommendation: quizRecommendation,
+      acceptTerms: form.acceptTerms,
+      acknowledgePrivacy: form.acknowledgePrivacy,
+      termsVersion: TERMS_VERSION,
+      privacyVersion: PRIVACY_VERSION,
     }));
     setLoading(false);
     if (registerWithGoogle.fulfilled.match(result)) {
@@ -60,19 +68,20 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSuccess = async (idToken: string) => {
+  const handleGoogleSuccess = async (idToken: string, nonce: string) => {
+    if (!form.acceptTerms || !form.acknowledgePrivacy) { setError("Αποδέξου τους όρους και επιβεβαίωσε ότι διάβασες την ενημέρωση απορρήτου."); return; }
     if (hasDeviceProfile) {
-      await finishGoogleRegistration(idToken, preferences.department!, String(preferences.semester));
+      await finishGoogleRegistration(idToken, nonce, preferences.department!, String(preferences.semester));
       return;
     }
-    setGoogleIdToken(idToken);
+    setGoogleCredential({ idToken, nonce });
     setShowQuickPicker(true);
   };
 
   const handleQuickPickerComplete = async (department: string, semester: string) => {
     setForm((current) => ({ ...current, department, semester }));
     setShowQuickPicker(false);
-    if (googleIdToken) await finishGoogleRegistration(googleIdToken, department, semester);
+    if (googleCredential) await finishGoogleRegistration(googleCredential.idToken, googleCredential.nonce, department, semester);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -84,6 +93,10 @@ export default function SignUpPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!form.acceptTerms || !form.acknowledgePrivacy) {
+      setError("Αποδέξου τους όρους και επιβεβαίωσε ότι διάβασες την ενημέρωση απορρήτου.");
+      return;
+    }
     const passwordRule = /^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,128}$/;
     if (!passwordRule.test(form.password)) {
       setError("Ο κωδικός χρειάζεται 8 χαρακτήρες, ένα κεφαλαίο γράμμα και ένα σύμβολο.");
@@ -132,7 +145,11 @@ export default function SignUpPage() {
           <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Το ακαδημαϊκό προφίλ της συσκευής θα χρησιμοποιηθεί αυτόματα — δεν χρειάζεται νέο onboarding.</p>
         </header>
 
-        <div className="mb-6"><GoogleSignInButton onSuccess={handleGoogleSuccess} /></div>
+        <label className="mb-4 flex items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-600 dark:border-white/10 dark:text-slate-300"><input type="checkbox" checked={form.acceptTerms && form.acknowledgePrivacy} onChange={(event) => setForm((current) => ({ ...current, acceptTerms: event.target.checked, acknowledgePrivacy: event.target.checked }))} className="mt-1 h-4 w-4 accent-ionian-blue"/><span>Αποδέχομαι τους <Link to="/terms" target="_blank" rel="noreferrer" className="font-bold text-ionian-blue hover:underline">Όρους χρήσης</Link> και επιβεβαιώνω ότι διάβασα την <Link to="/privacy" target="_blank" rel="noreferrer" className="font-bold text-ionian-blue hover:underline">Ενημέρωση απορρήτου</Link>.</span></label>
+
+        <div className="mb-4"><GoogleSignInButton onSuccess={handleGoogleSuccess} disabled={!form.acceptTerms || !form.acknowledgePrivacy} mode="signup" /></div>
+        {!allowPasswordRegistration && <p className="mb-6 flex items-start gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ShieldCheck className="mt-1 shrink-0" size={16}/>Οι νέες εγγραφές γίνονται με Google ώστε το email να είναι επαληθευμένο. Υπάρχοντες λογαριασμοί email μπορούν να συνδεθούν κανονικά.</p>}
+        {allowPasswordRegistration && <>
         <div className="mb-6 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />ή με email<span className="h-px flex-1 bg-slate-200 dark:bg-white/10" /></div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,13 +184,11 @@ export default function SignUpPage() {
           {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
           <button type="submit" disabled={loading} className="w-full rounded-xl bg-ionian-blue px-4 py-3 font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-60">{loading ? "Δημιουργία…" : "Δημιουργία λογαριασμού"}</button>
         </form>
+        </>}
 
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500"><ShieldCheck size={15} />Ο κωδικός κατακερματίζεται και τα tokens δεν είναι προσβάσιμα από JavaScript.</div>
-        <p className="mt-5 text-center text-xs leading-5 text-slate-500">Με την εγγραφή αποδέχεσαι τους <button onClick={() => setIsTermsOpen(true)} className="font-semibold text-ionian-blue hover:underline">όρους</button> και την <button onClick={() => setIsPrivacyOpen(true)} className="font-semibold text-ionian-blue hover:underline">πολιτική απορρήτου</button>.</p>
+        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-500"><ShieldCheck size={15} />Η σύνδεση χρησιμοποιεί ασφαλή HttpOnly cookies που δεν είναι προσβάσιμα από JavaScript.</div>
         <p className="mt-5 text-center text-sm text-slate-500">Έχεις ήδη λογαριασμό;{" "}<Link to="/signin" className="font-bold text-ionian-blue hover:underline">Σύνδεση</Link></p>
 
-        <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
-        <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
         <QuickPickerModal isOpen={showQuickPicker} onClose={() => setShowQuickPicker(false)} onComplete={handleQuickPickerComplete} />
       </main>
     </PageLayout>

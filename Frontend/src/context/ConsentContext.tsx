@@ -17,8 +17,8 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check local storage on mount
-    const consent = localStorage.getItem('cookie_consent');
-    if (consent === 'accepted') {
+    const consent = localStorage.getItem('storage_notice_acknowledged') ?? localStorage.getItem('cookie_consent');
+    if (consent === 'yes' || consent === 'accepted' || consent === 'declined') {
       setAgreedToCookies(true);
       setHasMadeChoice(true);
     } else if (consent === 'declined') {
@@ -28,24 +28,27 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const acceptCookies = () => {
-    localStorage.setItem('cookie_consent', 'accepted');
+    localStorage.setItem('storage_notice_acknowledged', 'yes');
+    localStorage.removeItem('cookie_consent');
     setAgreedToCookies(true);
     setHasMadeChoice(true);
   };
 
   const declineCookies = () => {
-    localStorage.setItem('cookie_consent', 'declined');
+    localStorage.setItem('storage_notice_acknowledged', 'yes');
+    localStorage.removeItem('cookie_consent');
     setAgreedToCookies(false);
     setHasMadeChoice(true);
   };
 
   const resetConsent = () => {
+    localStorage.removeItem('storage_notice_acknowledged');
     localStorage.removeItem('cookie_consent');
     setHasMadeChoice(false);
     setAgreedToCookies(false);
   };
 
-  const canLoadAnalytics = agreedToCookies;
+  const canLoadAnalytics = false; // No analytics are loaded in the launch baseline.
 
   return (
     <ConsentContext.Provider value={{ agreedToCookies, canLoadAnalytics, acceptCookies, declineCookies, resetConsent, hasMadeChoice }}>

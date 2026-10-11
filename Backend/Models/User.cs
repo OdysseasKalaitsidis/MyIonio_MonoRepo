@@ -19,8 +19,19 @@ namespace MyIonio.Models
 
         public string? Semester { get; set; }
 
+        [MaxLength(255)]
+        public string? GoogleSubject { get; set; }
+
+        [MaxLength(32)]
+        public string? AcceptedTermsVersion { get; set; }
+        public DateTime? TermsAcceptedAt { get; set; }
+
+        [MaxLength(32)]
+        public string? AcknowledgedPrivacyVersion { get; set; }
+        public DateTime? PrivacyAcknowledgedAt { get; set; }
+
         [Required]
-        [MaxLength(100)]
+        [MaxLength(254)]
         public string Email { get; set; }
 
         [Required]

@@ -27,6 +27,8 @@ namespace MyIonio.Controllers
         {
             if (dto == null)
                 return BadRequest("Request data missing.");
+            if (!_config.GetValue<bool>("Auth:AllowPasswordRegistration"))
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "Νέες εγγραφές με email είναι προσωρινά απενεργοποιημένες. Χρησιμοποίησε Google." });
 
             try
             {
@@ -37,7 +39,10 @@ namespace MyIonio.Controllers
             {
                 if (ex.Message.Contains("exists"))
                     return Conflict(new { message = ex.Message });
-                
+                if (ex is LegalAcceptanceRequiredException)
+                    return BadRequest(new { message = "Απαιτείται αποδοχή των τρεχόντων όρων και ενημέρωσης απορρήτου." });
+                if (ex is InvalidAcademicProfileException)
+                    return BadRequest(new { message = "Μη έγκυρο ακαδημαϊκό προφίλ." });
                 return StatusCode(500, new { message = "Registration failed due to a server error." });
             }
         }
@@ -46,6 +51,8 @@ namespace MyIonio.Controllers
         [EnableRateLimiting("Signup")]
         public async Task<IActionResult> RegisterWithTest([FromBody] RegisterWithTestDto dto)
         {
+            if (!_config.GetValue<bool>("Auth:AllowPasswordRegistration"))
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "Νέες εγγραφές με email είναι προσωρινά απενεργοποιημένες. Χρησιμοποίησε Google." });
             try
             {
                 if (dto == null || dto.UserData == null || dto.Recommendation == null)
@@ -115,24 +122,42 @@ namespace MyIonio.Controllers
             _authService.ClearAuthCookies();
             return NoContent();
         }
+        [HttpGet("google-nonce")]
+        [EnableRateLimiting("Login")]
+        public IActionResult GoogleNonce()
+        {
+            return Ok(new { nonce = _authService.IssueGoogleNonce() });
+        }
+
         [HttpPost("google-login")]
         [EnableRateLimiting("Login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
         {
             try
             {
+                if (!_authService.ConsumeGoogleNonce(dto.Nonce))
+                    return Unauthorized(new { message = "Η προσπάθεια σύνδεσης έληξε. Δοκίμασε ξανά." });
                 var result = await _authService.HandleGoogleAuthAsync(
-                    dto.IdToken, 
-                    dto.Semester, 
-                    dto.Department, 
-                    dto.Major, 
-                    dto.Minor, 
-                    dto.EnrolledCourses);
+                    dto.IdToken,
+                    dto.Nonce,
+                    allowRegistration: false);
                 return Ok(result);
+            }
+            catch (GoogleAccountNotRegisteredException)
+            {
+                return NotFound(new { message = "Δεν υπάρχει λογαριασμός Google. Κάνε πρώτα εγγραφή." });
+            }
+            catch (GoogleAccountLinkRequiredException)
+            {
+                return Conflict(new { message = "Υπάρχει λογαριασμός με αυτό το email. Συνδέσου με κωδικό." });
             }
             catch (Google.Apis.Auth.InvalidJwtException)
             {
-                return Unauthorized(new { message = "Invalid Google Token." });
+                return Unauthorized(new { message = "Η ταυτότητα Google δεν επαληθεύτηκε." });
+            }
+            catch (InvalidGoogleIdentityException)
+            {
+                return Unauthorized(new { message = "Η ταυτότητα Google δεν επαληθεύτηκε." });
             }
             catch (Exception)
             {
@@ -146,15 +171,40 @@ namespace MyIonio.Controllers
         {
             try
             {
+                if (!_authService.ConsumeGoogleNonce(dto.Nonce))
+                    return Unauthorized(new { message = "Η προσπάθεια εγγραφής έληξε. Δοκίμασε ξανά." });
                 var result = await _authService.HandleGoogleAuthAsync(
-                    dto.IdToken, 
-                    dto.Semester, 
-                    dto.Department, 
-                    null, 
-                    null, 
-                    null, 
-                    dto.Recommendation);
+                    dto.IdToken,
+                    dto.Nonce,
+                    allowRegistration: true,
+                    semester: dto.Semester,
+                    department: dto.Department,
+                    recommendation: dto.Recommendation,
+                    acceptTerms: dto.AcceptTerms,
+                    acknowledgePrivacy: dto.AcknowledgePrivacy,
+                    termsVersion: dto.TermsVersion,
+                    privacyVersion: dto.PrivacyVersion);
                 return Ok(result);
+            }
+            catch (GoogleAccountLinkRequiredException)
+            {
+                return Conflict(new { message = "Υπάρχει λογαριασμός με αυτό το email. Συνδέσου με κωδικό." });
+            }
+            catch (LegalAcceptanceRequiredException)
+            {
+                return BadRequest(new { message = "Απαιτείται αποδοχή των τρεχόντων όρων και ενημέρωσης απορρήτου." });
+            }
+            catch (InvalidAcademicProfileException)
+            {
+                return BadRequest(new { message = "Μη έγκυρο ακαδημαϊκό προφίλ." });
+            }
+            catch (Google.Apis.Auth.InvalidJwtException)
+            {
+                return Unauthorized(new { message = "Η ταυτότητα Google δεν επαληθεύτηκε." });
+            }
+            catch (InvalidGoogleIdentityException)
+            {
+                return Unauthorized(new { message = "Η ταυτότητα Google δεν επαληθεύτηκε." });
             }
             catch (Exception)
             {

@@ -15,6 +15,11 @@ export const login = async (data: LoginRequest): Promise<AuthResponse> => {
   return response.data;
 };
 
+export const getGoogleNonce = async (): Promise<string> => {
+  const response = await api.get<{ nonce: string }>("/auth/google-nonce");
+  return response.data.nonce;
+};
+
 export const googleLogin = async (
   data: GoogleLoginRequest
 ): Promise<AuthResponse> => {

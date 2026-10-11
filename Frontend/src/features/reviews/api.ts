@@ -5,14 +5,14 @@ export interface CourseReview {
     courseName: string;
     userName: string;
     rating: number;
-    comment: string;
+    comment: string | null;
     createdAt: string;
 }
 
 export interface SubmitReview {
     courseName: string;
     rating: number;
-    comment: string;
+    comment: string | null;
 }
 
 export interface CourseRatingSummary {

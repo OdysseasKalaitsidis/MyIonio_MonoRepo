@@ -14,6 +14,9 @@ import SchedulePage from "./pages/SchedulePage";
 import ExaminationPage from "./pages/ExaminationPage";
 import MenuPage from "./pages/MenuPage";
 import ProfessorsPage from "./pages/ProfessorsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
+import SafetyPage from "./pages/SafetyPage";
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
@@ -75,7 +78,6 @@ export function App() {
   return (
     <Provider store={store}>
       <ConsentProvider>
-        <CookieConsentBanner />
         <AuthBootstrap />
         <AuthSync /> 
         <Toaster position="top-right" toastOptions={{
@@ -95,12 +97,8 @@ export function App() {
             },
           },
         }} />
-        <Router
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
+        <Router>
+        <CookieConsentBanner />
         <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/quiz" element={<QuizPage />} />
@@ -113,6 +111,9 @@ export function App() {
           <Route path="/exams" element={<ExaminationPage />} />
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/professors" element={<ProfessorsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/safety" element={<SafetyPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Router>

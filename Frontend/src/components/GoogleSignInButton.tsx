@@ -1,70 +1,27 @@
+import { useCallback, useEffect, useState } from "react";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useDispatch, useSelector } from "react-redux";
-import { loginWithGoogle } from "../features/auth/authSlice";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import type { AppDispatch, RootState } from "../app/store";
+import type { AppDispatch } from "../app/store";
+import { loginWithGoogle } from "../features/auth/authSlice";
+import { getGoogleNonce } from "../features/auth/api";
 
-interface GoogleSignInButtonProps {
-  onSuccess?: (credential: string) => void;
-}
-
-export const GoogleSignInButton = ({ onSuccess }: GoogleSignInButtonProps) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  
-  // Select preferences from store to sync existing guest data
-  const { semester, major, minor, department, selectedCourses } = useSelector((state: RootState) => state.preferences);
-
-  const handleSuccess = async (credentialResponse: CredentialResponse) => {
-    if (credentialResponse.credential) {
-      if (onSuccess) {
-        onSuccess(credentialResponse.credential);
-      } else {
-        try {
-          const result = await dispatch(
-            loginWithGoogle({ 
-                idToken: credentialResponse.credential,
-                semester: semester?.toString() || undefined,
-                major: major || undefined,
-                minor: minor || undefined,
-                department: department || undefined,
-                enrolledCourses: selectedCourses 
-            })
-          );
-
-          if (loginWithGoogle.fulfilled.match(result)) {
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          console.error("Google login error:", error);
-        }
+interface GoogleSignInButtonProps { onSuccess?: (credential: string, nonce: string) => void | Promise<void>; disabled?: boolean; mode?: "signin" | "signup"; }
+export const GoogleSignInButton = ({ onSuccess, disabled = false, mode = "signin" }: GoogleSignInButtonProps) => {
+  const dispatch = useDispatch<AppDispatch>(); const navigate = useNavigate(); const [nonce, setNonce] = useState<string | null>(null);
+  const loadNonce = useCallback(async () => { try { setNonce(await getGoogleNonce()); } catch { setNonce(null); } }, []);
+  useEffect(() => { if (!disabled) void loadNonce(); }, [disabled, loadNonce]);
+  const handleSuccess = async (response: CredentialResponse) => {
+    if (!response.credential || !nonce) return;
+    try {
+      if (onSuccess) await onSuccess(response.credential, nonce);
+      else {
+        const result = await dispatch(loginWithGoogle({ idToken: response.credential, nonce }));
+        if (loginWithGoogle.fulfilled.match(result)) navigate("/dashboard");
       }
-    }
+    } finally { void loadNonce(); }
   };
-
-  const handleError = () => {
-    console.error("Google Login Failed");
-  };
-
-  return (
-    <div className="flex flex-col items-center w-full space-y-4">
-      <div className="relative w-full group">
-        {/* Decorative background glow */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-        
-        <div className="relative flex justify-center w-full bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm overflow-hidden border border-slate-200 dark:border-white/10">
-          <GoogleLogin
-            onSuccess={handleSuccess}
-            onError={handleError}
-            useOneTap
-            theme={document.documentElement.classList.contains('dark') ? "filled_black" : "outline"}
-            shape="pill"
-            width="100%"
-            text="continue_with"
-            logo_alignment="left"
-          />
-        </div>
-      </div>
-    </div>
-  );
+  if (disabled) return <button type="button" disabled className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400 dark:border-white/10 dark:bg-white/5">Αποδέξου πρώτα τους όρους για εγγραφή με Google</button>;
+  if (!nonce) return <div className="w-full rounded-xl border border-slate-200 px-4 py-3 text-center text-sm text-slate-400 dark:border-white/10">Προετοιμασία ασφαλούς σύνδεσης…</div>;
+  return <div className="flex w-full justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-0.5 shadow-sm dark:border-white/10 dark:bg-slate-900"><GoogleLogin key={nonce} onSuccess={handleSuccess} onError={() => void loadNonce()} nonce={nonce} context={mode} theme={document.documentElement.classList.contains("dark") ? "filled_black" : "outline"} shape="rectangular" width="100%" text={mode === "signup" ? "signup_with" : "signin_with"} logo_alignment="left" /></div>;
 };

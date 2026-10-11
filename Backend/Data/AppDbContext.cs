@@ -207,6 +207,15 @@ namespace MyIonio.Data
                     v => JsonSerializer.Deserialize<List<CourseEntry>>(v, jsonOptions) ?? new List<CourseEntry>()
                 );
         
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.GoogleSubject)
+                .IsUnique()
+                .HasFilter("\"GoogleSubject\" IS NOT NULL");
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
             // Configure User.EnrolledCourses as jsonb
             modelBuilder.Entity<User>()
                 .Property(u => u.EnrolledCourses)

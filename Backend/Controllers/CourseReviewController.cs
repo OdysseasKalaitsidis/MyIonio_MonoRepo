@@ -4,6 +4,7 @@ using MyIonio.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -26,16 +27,15 @@ namespace MyIonio.Controllers
         {
             var reviews = await _context.CourseReviews
                 .AsNoTracking()
-                .Include(r => r.User)
                 .Where(r => r.CourseName == courseName)
                 .OrderByDescending(r => r.CreatedAt)
                 .Select(r => new CourseReviewDto
                 {
                     Id = r.Id,
                     CourseName = r.CourseName,
-                    UserName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : "Anonymous",
+                    UserName = "Επαληθευμένος φοιτητής",
                     Rating = r.Rating,
-                    Comment = r.Comment,
+                    Comment = null,
                     CreatedAt = r.CreatedAt
                 })
                 .ToListAsync();
@@ -72,8 +72,13 @@ namespace MyIonio.Controllers
 
         [HttpPost]
         [Authorize]
+        [EnableRateLimiting("Reviews")]
         public async Task<IActionResult> SubmitReview([FromBody] SubmitReviewDto dto)
         {
+            if (!string.IsNullOrWhiteSpace(dto.Comment))
+                return BadRequest(new { message = "Τα ελεύθερα σχόλια είναι προσωρινά απενεργοποιημένα μέχρι να λειτουργήσει moderation." });
+
+            dto.CourseName = dto.CourseName.Trim();
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userIdStr, out Guid userId))
                 return Unauthorized();
@@ -86,7 +91,7 @@ namespace MyIonio.Controllers
             {
                 // Update existing review
                 existingReview.Rating = dto.Rating;
-                existingReview.Comment = dto.Comment;
+                existingReview.Comment = null;
                 existingReview.CreatedAt = DateTime.UtcNow;
                 _context.CourseReviews.Update(existingReview);
             }
@@ -98,7 +103,7 @@ namespace MyIonio.Controllers
                     CourseName = dto.CourseName,
                     UserId = userId,
                     Rating = dto.Rating,
-                    Comment = dto.Comment
+                    Comment = null
                 };
                 await _context.CourseReviews.AddAsync(review);
             }

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Clock, MapPin, User, Send, MessageSquare, Star, Award, Info, ChevronRight } from "lucide-react";
+import { X, Clock, MapPin, User, Send, Star, Award, Info, ChevronRight, ShieldCheck } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../app/store";
@@ -20,7 +20,6 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
   const [reviews, setReviews] = useState<CourseReview[]>([]);
   const [summary, setSummary] = useState<CourseRatingSummary | null>(null);
   const [myRating, setMyRating] = useState(0);
-  const [myComment, setMyComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
@@ -66,9 +65,8 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
       await reviewsApi.submitReview({
         courseName: course.course_name,
         rating: myRating,
-        comment: myComment
+        comment: ""
       });
-      setMyComment("");
       setMyRating(0);
       fetchReviews();
     } catch (err) {
@@ -221,7 +219,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
 
                 <div className="p-8 pb-4">
                   <h3 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                    Feedbacks
+                    Ανώνυμες βαθμολογίες
                   </h3>
                 </div>
 
@@ -247,7 +245,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                           <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-ionian-blue to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/20">
-                                {review.userName.charAt(0)}
+                                <ShieldCheck size={18} />
                               </div>
                               <div>
                                 <p className="font-black text-slate-800 dark:text-white text-sm">{review.userName}</p>
@@ -272,10 +270,10 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                   ) : (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                       <div className="w-20 h-20 rounded-[2rem] bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-6">
-                        <MessageSquare size={32} className="text-slate-200" />
+                        <Star size={32} className="text-slate-200" />
                       </div>
-                      <p className="text-lg font-black text-slate-800 dark:text-white">Empty Classroom</p>
-                      <p className="text-sm text-slate-400 max-w-[200px] mt-2">No reviews have been submitted for this course yet.</p>
+                      <p className="text-lg font-black text-slate-800 dark:text-white">Δεν υπάρχουν βαθμολογίες</p>
+                      <p className="text-sm text-slate-400 max-w-[200px] mt-2">Γίνε ο πρώτος που θα βαθμολογήσει το μάθημα.</p>
                     </div>
                   )}
                 </div>
@@ -286,8 +284,8 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Your Rating</p>
-                          <p className="text-lg font-black text-slate-800 dark:text-white">How was it?</p>
+                          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Η βαθμολογία σου</p>
+                          <p className="text-lg font-black text-slate-800 dark:text-white">Πώς ήταν το μάθημα;</p>
                         </div>
                         <StarRating 
                           rating={myRating} 
@@ -297,14 +295,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                         />
                       </div>
                       
-                      <div className="relative">
-                        <textarea
-                          value={myComment}
-                          onChange={(e) => setMyComment(e.target.value)}
-                          placeholder="Tell us about the course, the professor, or anything helpful..."
-                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-sm focus:outline-none focus:ring-4 focus:ring-ionian-blue/10 focus:border-ionian-blue/50 resize-none h-28 transition-all dark:text-white"
-                        />
-                      </div>
+                      <p className="flex items-start gap-2 rounded-xl bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 dark:bg-blue-950/30 dark:text-blue-200"><ShieldCheck className="mt-0.5 shrink-0" size={15}/>Η βαθμολογία εμφανίζεται χωρίς το όνομά σου. Δεν συλλέγουμε ελεύθερο κείμενο.</p>
 
                       <button
                         onClick={handleReviewSubmit}
@@ -321,7 +312,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                               className="flex items-center gap-2"
                             >
                               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              Submitting...
+                              Υποβολή…
                             </motion.div>
                           ) : (
                             <motion.div 
@@ -332,7 +323,7 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                               className="flex items-center gap-2"
                             >
                               <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                              Share Feedback
+                              Καταχώριση βαθμολογίας
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -344,14 +335,14 @@ export function CourseDetailsModal({ course, isOpen, onClose }: CourseDetailsMod
                         <Info size={24} />
                       </div>
                       <div>
-                        <p className="font-black text-slate-800 dark:text-white">Want to join the conversation?</p>
-                        <p className="text-xs text-slate-500 mt-1">Log in to share your experience with other students.</p>
+                        <p className="font-black text-slate-800 dark:text-white">Θέλεις να βαθμολογήσεις;</p>
+                        <p className="text-xs text-slate-500 mt-1">Συνδέσου για να καταχωρίσεις μία ανώνυμη βαθμολογία.</p>
                       </div>
                       <button 
                         onClick={() => { onClose(); navigate("/login"); }} 
                         className="mt-2 px-8 py-3 text-sm font-black uppercase tracking-wider text-white bg-slate-800 dark:bg-slate-700 rounded-xl hover:bg-slate-900 transition-all shadow-lg"
                       >
-                        Login Now
+                        Σύνδεση
                       </button>
                     </div>
                   )}

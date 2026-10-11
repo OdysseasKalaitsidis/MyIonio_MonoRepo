@@ -11,7 +11,7 @@ namespace MyIonio.DTOs
         public string Surname { get; set; } = null!;
 
         [Required, EmailAddress, MaxLength(254)]
-        public string Email { get; set; } = null!; 
+        public string Email { get; set; } = null!;
 
         [Required, RegularExpression("^(Α|Γ|Ε|Ζ)$", ErrorMessage = "Only active semesters Α, Γ, Ε and Ζ are available.")]
         public string Semester { get; set; } = null!;
@@ -24,6 +24,15 @@ namespace MyIonio.DTOs
         public string Password { get; set; } = null!;
 
         [Required, MaxLength(128)]
-        public string ConfirmPassword { get; set; } = null!; 
+        public string ConfirmPassword { get; set; } = null!;
+
+        public bool AcceptTerms { get; set; }
+        public bool AcknowledgePrivacy { get; set; }
+
+        [Required, MaxLength(32)]
+        public string TermsVersion { get; set; } = null!;
+
+        [Required, MaxLength(32)]
+        public string PrivacyVersion { get; set; } = null!;
     }
 }

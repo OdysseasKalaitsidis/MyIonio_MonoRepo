@@ -35,6 +35,7 @@ api.interceptors.response.use(
     const isSessionEndpoint = [
       "/auth/login",
       "/auth/google-login",
+      "/auth/google-nonce",
       "/auth/google-register",
       "/auth/register",
       "/auth/register-with-test",
