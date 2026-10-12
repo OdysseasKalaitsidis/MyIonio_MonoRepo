@@ -166,11 +166,16 @@ jobs:
     steps:
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD_HASH_B64: ${{ secrets.ADMIN_PASSWORD_HASH_B64 }}
+          ADMIN_SESSION_SECRET: ${{ secrets.ADMIN_SESSION_SECRET }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           command_timeout: 10m
+          envs: ADMIN_USERNAME,ADMIN_PASSWORD_HASH_B64,ADMIN_SESSION_SECRET
           script: |
             set -eu
             cd ${{ secrets.SERVER_PATH }}
@@ -185,6 +190,25 @@ jobs:
               fi
             done
             test "${missing_config}" = false
+
+            # Admin access is fail-closed. Provision the three generated values
+            # from encrypted GitHub Actions secrets into the VPS-only .env file.
+            for name in ADMIN_USERNAME ADMIN_PASSWORD_HASH_B64 ADMIN_SESSION_SECRET; do
+              case "${name}" in
+                ADMIN_USERNAME) value="${ADMIN_USERNAME:-}" ;;
+                ADMIN_PASSWORD_HASH_B64) value="${ADMIN_PASSWORD_HASH_B64:-}" ;;
+                ADMIN_SESSION_SECRET) value="${ADMIN_SESSION_SECRET:-}" ;;
+              esac
+              if [ -z "${value}" ]; then
+                echo "Missing required admin secret: ${name}"
+                exit 1
+              fi
+              if sudo grep -q "^${name}=" .env; then
+                sudo sed -i "s|^${name}=.*$|${name}=${value}|" .env
+              else
+                printf '%s=%s\n' "${name}" "${value}" | sudo tee -a .env > /dev/null
+              fi
+            done
 
             for name in GEMINI_API_KEY SUPABASE_URL SUPABASE_KEY; do
               if ! sudo grep -Eq "^${name}=.+$" .env; then
@@ -243,3 +267,6 @@ jobs:
         run: |
           curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://myionio.site/health
           curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://api.myionio.site/api/health
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://ai.myionio.site/admin)" = "303"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://ai.myionio.site/admin/login)" = "200"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --retry 12 --retry-all-errors --retry-delay 5 --connect-timeout 5 --max-time 10 https://ai.myionio.site/pipeline/types)" = "401"

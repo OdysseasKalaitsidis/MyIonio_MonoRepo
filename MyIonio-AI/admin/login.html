@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>MyIonio Admin · Σύνδεση</title>
+  <link rel="stylesheet" href="/admin/assets/admin.css" />
+</head>
+<body>
+<main class="login-shell">
+  <section class="login-card">
+    <span class="badge">Περιορισμένη πρόσβαση</span>
+    <h1>MyIonio Admin</h1>
+    <p>Συνδέσου με τα ξεχωριστά στοιχεία διαχειριστή.</p>
+    <p class="error" role="alert">{{ERROR_MESSAGE}}</p>
+    <form method="post" action="/admin/login" autocomplete="on">
+      <label>Όνομα χρήστη<input name="username" autocomplete="username" maxlength="256" required /></label>
+      <label>Κωδικός<input name="password" type="password" autocomplete="current-password" maxlength="1024" required /></label>
+      <button type="submit">Σύνδεση</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

@@ -105,8 +105,12 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - SUPABASE_URL=${SUPABASE_URL:-}
       - SUPABASE_SERVICE_KEY=${SUPABASE_KEY:-}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - AI_ALLOWED_ORIGINS=${AI_ALLOWED_ORIGINS:-https://myionio.site,http://localhost:5173,http://localhost:8080}
+      - ADMIN_ALLOWED_ORIGINS=${ADMIN_ALLOWED_ORIGINS:-https://ai.myionio.site}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-}
+      - ADMIN_PASSWORD_HASH_B64=${ADMIN_PASSWORD_HASH_B64:-}
+      - ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET:-}
     networks:
       - myionio-network
     ports:

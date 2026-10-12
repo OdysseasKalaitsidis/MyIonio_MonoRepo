@@ -11,7 +11,7 @@ Single entry point for all document types:
 import json
 import asyncio
 from pydantic import BaseModel, HttpUrl
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from loguru import logger
 
 from pipeline.pdf_to_images import pdf_to_images
@@ -19,6 +19,7 @@ from pipeline.gemini_client import extract_from_images, is_gemini_configured
 from pipeline.validator import validate_output
 from pipeline.dispatcher import SCHEMA_REGISTRY, ALLOWED_TYPES
 from db.pg_client import get_pool
+from security.admin_auth import require_admin_csrf
 from pipeline.official_schedule_source import (
     OFFICIAL_SCHEDULE_PAGE,
     OfficialSourceError,
@@ -30,6 +31,7 @@ from pipeline.official_schedule_source import (
 )
 
 router = APIRouter()
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 
 class OfficialImportRequest(BaseModel):
@@ -98,6 +100,7 @@ async def upload_document(
     file: UploadFile = File(..., description="PDF file to parse"),
     document_type: str = Form(..., description=f"Document type. One of: {ALLOWED_TYPES}"),
     department: str = Form(default="Τμήμα Πληροφορικής", description="Greek department name"),
+    _: None = Depends(require_admin_csrf),
 ):
     """
     Full pipeline: PDF → images → Gemini extraction → validation → DB write.
@@ -113,9 +116,11 @@ async def upload_document(
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
-    pdf_bytes = await file.read()
+    pdf_bytes = await file.read(MAX_UPLOAD_BYTES + 1)
     if not pdf_bytes:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(pdf_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="PDF exceeds the 15 MB upload limit.")
     return await process_document_bytes(
         pdf_bytes=pdf_bytes,
         filename=file.filename,
@@ -146,7 +151,10 @@ async def list_official_schedules():
 
 
 @router.post("/official/import")
-async def import_official_schedule(request: OfficialImportRequest):
+async def import_official_schedule(
+    request: OfficialImportRequest,
+    _: None = Depends(require_admin_csrf),
+):
     """Import one currently published official timetable through the shared pipeline."""
     try:
         documents = await discover_official_schedules()
